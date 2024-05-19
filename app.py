@@ -222,6 +222,48 @@ def send_email(
         print(e)
 
 
+@app.route("/empty-folder", methods=["DELETE"])
+def empty_images_folder():
+    username = request.args.get("username")
+    if not username:
+        return jsonify({"error": "Username not provided"}), 400
+
+    try:
+        # List all objects in the user's images folder
+        objects_to_delete = []
+        paginator = s3.get_paginator("list_objects_v2")
+        for page in paginator.paginate(
+            Bucket=BUCKET_NAME, Prefix=f"{username}/images/"
+        ):
+            if "Contents" in page:
+                for obj in page["Contents"]:
+                    objects_to_delete.append({"Key": obj["Key"]})
+
+        if not objects_to_delete:
+            return jsonify({"message": "No objects found in the images folder"}), 200
+
+        # Delete the listed objects
+        delete_response = s3.delete_objects(
+            Bucket=BUCKET_NAME, Delete={"Objects": objects_to_delete}
+        )
+
+        return (
+            jsonify(
+                {
+                    "message": "Images folder emptied successfully",
+                    "deleted": delete_response.get("Deleted", []),
+                    "errors": delete_response.get("Errors", []),
+                }
+            ),
+            200,
+        )
+
+    except NoCredentialsError:
+        return jsonify({"error": "Credentials not available"}), 500
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/")
 def hello_world():
     return "Hello, World!"
