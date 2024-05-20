@@ -229,32 +229,31 @@ def empty_images_folder():
         return jsonify({"error": "Username not provided"}), 400
 
     try:
-        # List all objects in the user's images folder
+        # Define the prefix for the user's images folder
+        folder_prefix = f"{username}/images/"
+
+        # List all objects in the folder
         objects_to_delete = []
         paginator = s3.get_paginator("list_objects_v2")
-        for page in paginator.paginate(
-            Bucket=BUCKET_NAME, Prefix=f"{username}/images/"
-        ):
+        for page in paginator.paginate(Bucket=BUCKET_NAME, Prefix=folder_prefix):
             if "Contents" in page:
                 for obj in page["Contents"]:
                     objects_to_delete.append({"Key": obj["Key"]})
 
-        if not objects_to_delete:
-            return jsonify({"message": "No objects found in the images folder"}), 200
+        if objects_to_delete:
+            # Batch delete all objects
+            delete_chunks = [
+                objects_to_delete[i : i + 1000]
+                for i in range(0, len(objects_to_delete), 1000)
+            ]
+            for chunk in delete_chunks:
+                s3.delete_objects(Bucket=BUCKET_NAME, Delete={"Objects": chunk})
 
-        # Delete the listed objects
-        delete_response = s3.delete_objects(
-            Bucket=BUCKET_NAME, Delete={"Objects": objects_to_delete}
-        )
+        # Recreate the empty folder by creating a zero-byte object with the folder's prefix
+        s3.put_object(Bucket=BUCKET_NAME, Key=folder_prefix)
 
         return (
-            jsonify(
-                {
-                    "message": "Images folder emptied successfully",
-                    "deleted": delete_response.get("Deleted", []),
-                    "errors": delete_response.get("Errors", []),
-                }
-            ),
+            jsonify({"message": "Images folder emptied and recreated successfully"}),
             200,
         )
 
