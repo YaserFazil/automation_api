@@ -249,8 +249,7 @@ def empty_images_folder():
             for chunk in delete_chunks:
                 s3.delete_objects(Bucket=BUCKET_NAME, Delete={"Objects": chunk})
 
-        # Recreate the empty folder by creating a zero-byte object with the folder's prefix
-        s3.put_object(Bucket=BUCKET_NAME, Key=folder_prefix)
+        s3.delete_object(Bucket=BUCKET_NAME, Key=f"{username}/images.zip")
 
         return (
             jsonify({"message": "Images folder emptied and recreated successfully"}),
