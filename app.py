@@ -98,7 +98,7 @@ def get_folder_stats():
             jsonify(
                 {
                     "username": username,
-                    "object_count": object_count,
+                    "object_count": object_count - 1,
                     "total_size_bytes": total_size,
                     "total_size_kb": total_size / 1024,
                     "total_size_mb": total_size_mb,
@@ -269,4 +269,4 @@ def hello_world():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0")
