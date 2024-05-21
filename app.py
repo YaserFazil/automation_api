@@ -262,7 +262,7 @@ def empty_images_folder():
         return jsonify({"error": str(e)}), 500
 
 
-@app.route("/")
+@app.route("/", methods=["GET"])
 def hello_world():
     return "Hello, World!"
 
