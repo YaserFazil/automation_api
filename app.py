@@ -186,7 +186,10 @@ def zip_images_folder():
 
         # Generate public link for downloading the zip file
         download_link = PUBLIC_BUCKET_URL + s3_zip_key
-        send_email(email)
+        send_email(
+            recipient=email,
+            body=f"Congrats! Your images zipped successfully! <a href='{download_link}'>Click here</a> to download your images.zip file.",
+        )
         return jsonify({"download_link": download_link}), 200
     except NoCredentialsError:
         send_email(
@@ -205,12 +208,12 @@ def zip_images_folder():
 def send_email(
     recipient,
     subject="Soniclister Images Zipping process update",
-    body="Congrats! Your images zipped successfully!",
+    body="Congrats! Your images zipped successfully! <a href='http://example.com'>Click here</a> to view your images.",
 ):
     sender = os.getenv("SENDER_GMAIL")
     password = os.getenv("SENDER_GMAIL_APP_PASSWORD")
     try:
-        msg = MIMEText(body)
+        msg = MIMEText(body, "html")
         msg["Subject"] = subject
         msg["From"] = sender
         msg["To"] = recipient
