@@ -162,6 +162,7 @@ def zip_images_folder():
                 if "Contents" in page:
                     for obj in page["Contents"]:
                         image_key = obj["Key"]
+                        print("Here is the zipping image: ", image_key)
                         # Get image data from S3
                         response = s3.get_object(Bucket=BUCKET_NAME, Key=image_key)
                         # Add image data to zip file
