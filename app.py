@@ -9,12 +9,13 @@ import smtplib
 from email.mime.text import MIMEText
 from dotenv import load_dotenv
 from funcs import runAndroidAutomation, fetch_barcode
+from threading import Lock
 
 load_dotenv()
 
 app = Flask(__name__)
 
-
+lock = Lock()
 # Initialize S3 client
 s3 = boto3.client("s3", region_name="ca-central-1")
 
@@ -274,33 +275,50 @@ def hello_world():
 
 @app.route("/fnsku-converter", methods=["GET"])
 def convert_fnsku_to_asin():
-    fnsku = request.args.get("fnsku")
-    if not fnsku:
-        return jsonify({"status": "failed", "msg": "FNSKU Code is required!"})
-    try:
-        print("FNSKU: ", fnsku)
-        fetch_barcode(fnsku)
-        automation = runAndroidAutomation()
-        automation.setUp()
-        max_attempts = 5
-        attempts = 0
-        asin = {"status": "failed", "msg": "Initial attempt"}
-        while attempts < max_attempts and asin["status"] != "success":
-            asin = automation.start()
-            attempts += 1
-            if asin["status"] == "success":
-                return jsonify(
-                    {
-                        "status": "success",
-                        "msg": "Congrats! Your FNSKU code converted to ASIN",
-                        "asin": asin["code"],
-                        "fnsku": fnsku,
-                    }
+    with lock:
+        fnskus = request.args.getlist("fnsku")
+        if not fnskus:
+            return jsonify(
+                {"status": "failed", "msg": "At least one FNSKU Code is required!"}
+            )
+
+        results = []
+        for fnsku in fnskus:
+            try:
+                print("FNSKU: ", fnsku)
+                fetch_barcode(fnsku)
+                automation = runAndroidAutomation()
+                automation.setUp()
+                max_attempts = 5
+                attempts = 0
+                asin = {"status": "None", "msg": "Initial attempt"}
+                while attempts < max_attempts and asin["status"] != "success":
+                    asin = automation.start()
+                    attempts += 1
+                    if asin["status"] == "success":
+                        results.append(
+                            {
+                                "status": "success",
+                                "msg": "Congrats! Your FNSKU code converted to ASIN",
+                                "asin": asin["code"],
+                                "fnsku": fnsku,
+                            }
+                        )
+                        break
+                    elif attempts >= max_attempts:
+                        results.append(
+                            {
+                                "status": "failed",
+                                "msg": f"Error: {asin['msg']}",
+                                "fnsku": fnsku,
+                            }
+                        )
+            except Exception as e:
+                results.append(
+                    {"status": "failed", "msg": f"Error: {e}", "fnsku": fnsku}
                 )
-            elif attempts >= max_attempts:
-                return jsonify({"status": "failed", "msg": f"Error: {asin['msg']}"})
-    except Exception as e:
-        return jsonify({"status": "failed", "msg": f"Error: {e}"})
+
+        return jsonify(results)
 
 
 if __name__ == "__main__":
