@@ -8,6 +8,7 @@ from io import BytesIO
 from PIL import Image
 import requests
 import re
+import random
 
 load_dotenv()
 
@@ -135,7 +136,7 @@ class runAndroidAutomation:
                         not_searchable = self.driver.find_element(
                             by=AppiumBy.XPATH, value=try_again_btn
                         )
-                        fetch_barcode(fnsku)
+                        fetch_barcode(fnsku, random.choice(100, 135))
                         sleep(3)
                         not_searchable.click()
                     except:
@@ -189,7 +190,7 @@ def image_injection(image_b):
         return {"status": "failed", "msg": f"Response Content: {response}"}
 
 
-def fetch_barcode(data):
+def fetch_barcode(data, dpi=125):
     base_url = "https://barcode.tec-it.com/barcode.ashx"
     params = {
         "data": data,
@@ -198,7 +199,7 @@ def fetch_barcode(data):
         "unit": "Min",
         "imagetype": "Png",
         "rotation": 90,
-        "dpi": 125,
+        "dpi": dpi,
     }
     response = requests.get(base_url, params=params)
 
