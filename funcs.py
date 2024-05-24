@@ -90,7 +90,7 @@ class runAndroidAutomation:
             print("Exception while closing the app: ", e)
             return False
 
-    def start(self) -> None:
+    def start(self, fnsku) -> None:
         max_opens = 5
         opens = 0
         try:
@@ -115,6 +115,7 @@ class runAndroidAutomation:
             )
             barcode.click()
             sleep(5)
+
             max_attempts = 5
             attempts = 0
 
@@ -129,6 +130,17 @@ class runAndroidAutomation:
                     break  # If the operation succeeds, break out of the loop
                 except Exception as e:
                     attempts += 1
+                    try:
+                        sleep(3)
+                        not_searchable = self.driver.find_element(
+                            by=AppiumBy.XPATH, value=try_again_btn
+                        )
+                        fetch_barcode(fnsku)
+                        sleep(3)
+                        not_searchable.click()
+                    except:
+                        continue
+                    sleep(3)
                     print(f"Attempt {attempts} failed: {e}")
                     sleep(1)  # Optional: wait for a second before retrying
 

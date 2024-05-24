@@ -293,7 +293,7 @@ def convert_fnsku_to_asin():
                 attempts = 0
                 asin = {"status": "None", "msg": "Initial attempt"}
                 while attempts < max_attempts and asin["status"] != "success":
-                    asin = automation.start()
+                    asin = automation.start(fnsku)
                     attempts += 1
                     if asin["status"] == "success":
                         results.append(
