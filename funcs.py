@@ -13,6 +13,7 @@ load_dotenv()
 
 capabilities = dict(
     platformName="Android",
+    deviceName="cloud_arm",
     automationName="uiautomator2",
     ensureWebviewsHavePages=True,
     nativeWebScreenshot=True,
