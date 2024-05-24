@@ -95,7 +95,7 @@ class runAndroidAutomation:
         max_opens = 5
         opens = 0
         try:
-            if opens >= max_opens:
+            if opens == max_opens:
                 app_reopened = self.reopen_app()
                 if app_reopened:
                     opens = 0
