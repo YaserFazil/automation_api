@@ -226,7 +226,7 @@ def fetch_barcode(data, dpi=96):
         "data": data,
         "code": "Code128",
         "translate-esc": "on",
-        "unit": "Fit",
+        "unit": "Min",
         "imagetype": "Gif",
         "rotation": 90,
         "dpi": dpi,
