@@ -157,6 +157,7 @@ class runAndroidAutomation:
                     "Failed to find and click the product element after several attempts"
                 )
                 # Include the code you want to run in case of failure here
+                return {"status": "failed", "msg": "Reached max attempts for trying!"}
 
             sleep(2)
 
