@@ -220,7 +220,7 @@ def image_injection(image_b):
         return {"status": "failed", "msg": f"Response Content: {response}"}
 
 
-def fetch_barcode(data, dpi=96):
+def fetch_barcode(data, dpi=125):
     base_url = "https://barcode.tec-it.com/barcode.ashx"
     params = {
         "data": data,
@@ -238,7 +238,7 @@ def fetch_barcode(data, dpi=96):
 
         # Rotate the background image 270 degrees
         # barcode_image = barcode_image.rotate(90)
-        barcode_image = barcode_image.resize((35, 120))
+        # barcode_image = barcode_image.resize((35, 120))
         # Create a white background image
         background = Image.new("RGB", (453, 267), "white")
 
@@ -256,8 +256,17 @@ def fetch_barcode(data, dpi=96):
         byte_arr = BytesIO()
         background.save(byte_arr, format="PNG")
         background_bytes = byte_arr.getvalue()
+        # Load the image from bytes
+        image = Image.open(BytesIO(background_bytes))
 
-        image_injection(background_bytes)
+        # Rotate the image (e.g., 90 degrees)
+        rotated_image = image.rotate(90, expand=True)
+
+        # Save the rotated image back to bytes
+        rotated_byte_arr = BytesIO()
+        rotated_image.save(rotated_byte_arr, format="PNG")
+        rotated_background_bytes = rotated_byte_arr.getvalue()
+        image_injection(rotated_background_bytes)
         print("Barcode image saved as 'barcode.png'")
         return {
             "status": "success",
