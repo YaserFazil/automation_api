@@ -152,12 +152,24 @@ class runAndroidAutomation:
 
             # If the loop finishes without breaking, handle the failure case
             if attempts == max_attempts:
-                # Code to handle the failure
-                print(
-                    "Failed to find and click the product element after several attempts"
-                )
-                # Include the code you want to run in case of failure here
-                return {"status": "failed", "msg": "Reached max attempts for trying!"}
+                try:
+                    scn_product_type = '//android.view.View[@resource-id="search"]/android.view.View[4]'
+                    # Attempt to find and click the product element
+                    product = self.driver.find_element(
+                        by=AppiumBy.XPATH,
+                        value=scn_product_type,
+                    )
+                    product.click()
+                except:
+                    # Code to handle the failure
+                    print(
+                        "Failed to find and click the product element after several attempts"
+                    )
+                    # Include the code you want to run in case of failure here
+                    return {
+                        "status": "failed",
+                        "msg": "Reached max attempts for trying!",
+                    }
 
             sleep(2)
 
