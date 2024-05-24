@@ -32,6 +32,9 @@ copy_clipboard = (
 
 share_action = '//android.view.View[@resource-id="ssf-share-action"]'
 
+max_opens = 5
+opens = 0
+
 
 class runAndroidAutomation:
     def setUp(self) -> None:
@@ -92,8 +95,8 @@ class runAndroidAutomation:
             return False
 
     def start(self, fnsku) -> None:
-        max_opens = 5
-        opens = 0
+        global max_opens
+        global opens
         try:
             if opens == max_opens:
                 app_reopened = self.reopen_app()
@@ -161,15 +164,24 @@ class runAndroidAutomation:
                     )
                     product.click()
                 except:
-                    # Code to handle the failure
-                    print(
-                        "Failed to find and click the product element after several attempts"
-                    )
-                    # Include the code you want to run in case of failure here
-                    return {
-                        "status": "failed",
-                        "msg": "Reached max attempts for trying!",
-                    }
+                    try:
+                        thr_product_type = '//android.view.View[@resource-id="search"]/android.view.View[2]'
+                        # Attempt to find and click the product element
+                        product = self.driver.find_element(
+                            by=AppiumBy.XPATH,
+                            value=thr_product_type,
+                        )
+                        product.click()
+                    except:
+                        # Code to handle the failure
+                        print(
+                            "Failed to find and click the product element after several attempts"
+                        )
+                        # Include the code you want to run in case of failure here
+                        return {
+                            "status": "failed",
+                            "msg": "Reached max attempts for trying!",
+                        }
 
             sleep(2)
 
