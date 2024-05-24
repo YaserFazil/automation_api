@@ -133,10 +133,10 @@ class runAndroidAutomation:
                     attempts += 1
                     try:
                         sleep(3)
+                        fetch_barcode(fnsku, random.choice(100, 135))
                         not_searchable = self.driver.find_element(
                             by=AppiumBy.XPATH, value=try_again_btn
                         )
-                        fetch_barcode(fnsku, random.choice(100, 135))
                         sleep(3)
                         not_searchable.click()
                     except:
