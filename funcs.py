@@ -235,7 +235,7 @@ def fetch_barcode(data, dpi=125):
 
     if response.status_code == 200:
         barcode_image = Image.open(BytesIO(response.content))
-
+        barcode_image = barcode_image.resize((150, 75))
         # Rotate the background image 270 degrees
         # barcode_image = barcode_image.rotate(90)
         # barcode_image = barcode_image.resize((35, 120))
@@ -261,7 +261,7 @@ def fetch_barcode(data, dpi=125):
 
         # Rotate the image (e.g., 90 degrees)
         rotated_image = image.rotate(180, expand=True)
-        rotated_image = rotated_image.resize((150, 75))
+
         # Save the rotated image back to bytes
         rotated_byte_arr = BytesIO()
         rotated_image.save(rotated_byte_arr, format="PNG")
