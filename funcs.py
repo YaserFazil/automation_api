@@ -133,10 +133,13 @@ class runAndroidAutomation:
                     attempts += 1
                     try:
                         sleep(3)
+                        print("Fetch barcode to try search again")
                         fetch_barcode(fnsku, random.choice(100, 135))
+                        print("Barcode fetched to try search again")
                         not_searchable = self.driver.find_element(
                             by=AppiumBy.XPATH, value=try_again_btn
                         )
+                        print("Try again search element found")
                         sleep(3)
                         not_searchable.click()
                         print("Try again search clicked")
