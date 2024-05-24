@@ -137,7 +137,7 @@ class runAndroidAutomation:
                     try:
                         sleep(3)
                         print("Fetch barcode to try search again")
-                        fetch_barcode(fnsku, random.choice((100, 135)))
+                        fetch_barcode(fnsku, random.choice((96, 135)))
                         print("Barcode fetched to try search again")
                         not_searchable = self.driver.find_element(
                             by=AppiumBy.XPATH, value=try_again_btn
@@ -220,14 +220,14 @@ def image_injection(image_b):
         return {"status": "failed", "msg": f"Response Content: {response}"}
 
 
-def fetch_barcode(data, dpi=125):
+def fetch_barcode(data, dpi=96):
     base_url = "https://barcode.tec-it.com/barcode.ashx"
     params = {
         "data": data,
         "code": "Code128",
         "translate-esc": "on",
-        "unit": "Min",
-        "imagetype": "Png",
+        "unit": "Fit",
+        "imagetype": "Gif",
         "rotation": 90,
         "dpi": dpi,
     }
