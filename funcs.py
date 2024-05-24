@@ -227,7 +227,7 @@ def fetch_barcode(data, dpi=96):
         "code": "Code128",
         "translate-esc": "on",
         "unit": "Min",
-        "imagetype": "JPG",
+        "imagetype": "Png",
         "rotation": 90,
         "dpi": dpi,
     }
