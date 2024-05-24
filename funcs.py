@@ -70,36 +70,89 @@ class runAndroidAutomation:
         if self.driver:
             self.driver.quit()
 
-    def start(self) -> None:
+    def reopen_app(self) -> None:
         try:
-            take_pic = self.driver.find_element(
-                by=AppiumBy.XPATH,
-                value='//android.widget.ImageView[@resource-id="com.amazon.mShop.android.shopping:id/chrome_action_bar_camera_icon"]',
+            app_terminated = self.driver.terminate_app(
+                "com.amazon.mShop.android.shopping"
             )
-            take_pic.click()
+            if app_terminated:
+                sleep(5)
+                open_app = self.driver.find_element(
+                    by=AppiumBy.XPATH,
+                    value='//android.widget.TextView[@content-desc="Amazon Shopping"]',
+                )
+                open_app.click()
+                sleep(3)
+                return True
+            else:
+                return False
+        except Exception as e:
+            print("Exception while closing the app: ", e)
+            return False
+
+    def start(self) -> None:
+        max_opens = 5
+        opens = 0
+        try:
+            if opens >= max_opens:
+                app_reopened = self.reopen_app()
+                if app_reopened:
+                    opens = 0
+            try:
+                take_pic = self.driver.find_element(
+                    by=AppiumBy.XPATH,
+                    value='//android.widget.ImageView[@resource-id="com.amazon.mShop.android.shopping:id/chrome_action_bar_camera_icon"]',
+                )
+                take_pic.click()
+            except:
+                app_reopened = self.reopen_app()
+                if app_reopened:
+                    opens = 0
             sleep(5)
             barcode = self.driver.find_element(
                 by=AppiumBy.XPATH,
                 value='//android.widget.FrameLayout[@content-desc="btn_barcode"]',
             )
             barcode.click()
-            sleep(2)
-            product = self.driver.find_element(
-                by=AppiumBy.XPATH,
-                value='//android.view.View[@resource-id="search"]/android.view.View[3]/android.view.View',
-            )
-            product.click()
+            sleep(5)
+            max_attempts = 5
+            attempts = 0
+
+            while attempts < max_attempts:
+                try:
+                    # Attempt to find and click the product element
+                    product = self.driver.find_element(
+                        by=AppiumBy.XPATH,
+                        value='//android.view.View[@resource-id="search"]/android.view.View[3]/android.view.View',
+                    )
+                    product.click()
+                    break  # If the operation succeeds, break out of the loop
+                except Exception as e:
+                    attempts += 1
+                    print(f"Attempt {attempts} failed: {e}")
+                    sleep(1)  # Optional: wait for a second before retrying
+
+            # If the loop finishes without breaking, handle the failure case
+            if attempts == max_attempts:
+                # Code to handle the failure
+                print(
+                    "Failed to find and click the product element after several attempts"
+                )
+                # Include the code you want to run in case of failure here
+
             sleep(2)
 
             # Get ASIN from page source
             clipboard_text = self.share_finder()
             asin = get_asin_from_text(clipboard_text)
             self.tearDown()
+            opens += 1
             if asin is not None:
                 return {"status": "success", "code": asin}
             else:
                 return {"status": "failed", "msg": "Not found ASIN"}
         except Exception as e:
+            opens += 1
             return {"status": "failed", "msg": f"Error: {e}"}
 
 
