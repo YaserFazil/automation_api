@@ -139,7 +139,9 @@ class runAndroidAutomation:
                         )
                         sleep(3)
                         not_searchable.click()
+                        print("Try again search clicked")
                     except:
+                        print("Continue")
                         continue
                     sleep(3)
                     print(f"Attempt {attempts} failed: {e}")
