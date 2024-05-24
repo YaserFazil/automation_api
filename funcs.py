@@ -250,7 +250,7 @@ def fetch_barcode(data, dpi=96):
 
         # Paste the barcode image onto the background
         background.paste(barcode_image, position)
-        # background = background.resize((883, 416))
+        background = background.resize((500, 216))
 
         # Convert the final image to bytes
         byte_arr = BytesIO()
