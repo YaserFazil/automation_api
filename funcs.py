@@ -238,7 +238,7 @@ def fetch_barcode(data, dpi=96):
 
         # Rotate the background image 270 degrees
         # barcode_image = barcode_image.rotate(90)
-        barcode_image = barcode_image.resize((100, 25))
+        barcode_image = barcode_image.resize((25, 100))
         # Create a white background image
         background = Image.new("RGB", (453, 267), "white")
 
