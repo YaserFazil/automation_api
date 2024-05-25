@@ -260,7 +260,7 @@ def fetch_barcode(data, dpi=125):
         image = Image.open(BytesIO(background_bytes))
 
         # Rotate the image (e.g., 90 degrees)
-        rotated_image = image.rotate(180, expand=True)
+        rotated_image = image.rotate(270, expand=True)
 
         # Save the rotated image back to bytes
         rotated_byte_arr = BytesIO()
