@@ -220,7 +220,7 @@ def image_injection(image_b):
         return {"status": "failed", "msg": f"Response Content: {response}"}
 
 
-def fetch_barcode(data, dpi=333):
+def fetch_barcode(data, dpi=444):
     base_url = "https://barcode.tec-it.com/barcode.ashx"
     params = {
         "data": data,
