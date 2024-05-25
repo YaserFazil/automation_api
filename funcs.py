@@ -229,7 +229,7 @@ def fetch_barcode(data, dpi=444):
         "unit": "Min",
         "imagetype": "Png",
         "rotation": 90,
-        "dpi": dpi,
+        "dpi": 444,
     }
     response = requests.get(base_url, params=params)
 
