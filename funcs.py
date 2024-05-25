@@ -220,7 +220,7 @@ def image_injection(image_b):
         return {"status": "failed", "msg": f"Response Content: {response}"}
 
 
-def fetch_barcode(data, dpi=125):
+def fetch_barcode(data, dpi=333):
     base_url = "https://barcode.tec-it.com/barcode.ashx"
     params = {
         "data": data,
@@ -235,7 +235,7 @@ def fetch_barcode(data, dpi=125):
 
     if response.status_code == 200:
         barcode_image = Image.open(BytesIO(response.content))
-        barcode_image = barcode_image.resize((155, 350))
+        # barcode_image = barcode_image.resize((155, 350))
         # Rotate the background image 270 degrees
         # barcode_image = barcode_image.rotate(90)
         # barcode_image = barcode_image.resize((35, 120))
