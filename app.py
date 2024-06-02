@@ -289,11 +289,11 @@ def convert_fnsku_to_asin():
                 fetch_barcode(fnsku)
                 automation = runAndroidAutomation()
                 automation.setUp()
-                max_attempts = 5
+                max_attempts = 2
                 attempts = 0
                 asin = {"status": "None", "msg": "Initial attempt"}
                 while attempts < max_attempts and asin["status"] != "success":
-                    asin = automation.start(fnsku)
+                    asin = automation.start_canada(fnsku)
                     attempts += 1
                     if asin["status"] == "success":
                         results.append(
