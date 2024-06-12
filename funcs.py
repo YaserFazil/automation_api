@@ -29,7 +29,9 @@ type_to_search = '//android.widget.TextView[@resource-id="com.amazon.mShop.andro
 copy_clipboard = (
     '//android.widget.LinearLayout[@resource-id="android:id/chooser_action_row"]'
 )
-copy_clipboard = '//android.widget.Button[@resource-id="android:id/chooser_copy_button"]'
+copy_clipboard = (
+    '//android.widget.Button[@resource-id="android:id/chooser_copy_button"]'
+)
 share_action = '//android.view.View[@resource-id="ssf-share-action"]'
 
 max_opens = 5
@@ -309,26 +311,21 @@ class runAndroidAutomation:
                     # Attempt to find and click the product element
                     product = self.driver.find_element(
                         by=AppiumBy.XPATH,
-                        value='//android.webkit.WebView[@text="Amazon.ca"]/android.view.View/android.view.View/android.view.View[2]',
+                        value='//android.webkit.WebView[@text="Amazon.ca"]/android.view.View/android.view.View/android.view.View[3]',
                     )
                     product.click()
                     break
                 except Exception as e:
                     attempts += 1
                     try:
-                        sleep(2)
-                        print("Fetch barcode to try search again")
                         fetch_barcode(fnsku, random.choice((96, 135)))
-                        print("Barcode fetched to try search again")
 
                         not_searchable = self.driver.find_element(
                             by=AppiumBy.XPATH,
                             value='//android.widget.Button[@text="Try Again"]',  # Adjusted example for try again button
                         )
-                        print("Try again search element found")
                         sleep(2)
                         not_searchable.click()
-                        print("Try again search clicked")
                     except Exception as e:
                         try:
                             no_results = self.driver.find_element(
@@ -341,40 +338,22 @@ class runAndroidAutomation:
                                 "fnsku": fnsku,
                             }
                             return result
-                        #     if self.change_to_usa():
-                        #         result = None
-                        #         max_attempts_us = 2
-                        #         attempts_us = 0
-                        #         asin = {"status": "None", "msg": "Initial attempt"}
-                        #         while (
-                        #             attempts_us < max_attempts_us
-                        #             and asin["status"] != "success"
-                        #         ):
-                        #             asin = self.start_us(fnsku)
-                        #             attempts_us += 1
-                        #             if asin["status"] == "success":
-                        #                 result = {
-                        #                     "status": "success",
-                        #                     "msg": "Congrats! Your FNSKU code converted to ASIN",
-                        #                     "asin": asin["code"],
-                        #                     "fnsku": fnsku,
-                        #                 }
-                        #                 break
-                        #             elif attempts_us >= max_attempts_us:
-                        #                 result = {
-                        #                     "status": "failed",
-                        #                     "msg": f"No product found.",
-                        #                     "fnsku": fnsku,
-                        #                 }
-
-                        #         self.change_to_canada()
-                        #         return result
-                        except Exception as e:
-                            print("Continue", e)
-                            continue
+                        except:
+                            try:
+                                no_results = self.driver.find_element(
+                                    by=AppiumBy.XPATH,
+                                    value='//android.widget.TextView[@text="Results Check each product page for other buying options. Price and other details may vary based on product size and colour."]',
+                                )
+                                result = {
+                                    "status": "failed",
+                                    "msg": f"No product found.",
+                                    "fnsku": fnsku,
+                                }
+                                return result
+                            except:
+                                print("Continue")
+                                continue
             sleep(2)
-            print(f"Attempt {attempts} failed: {e}")
-            # sleep(1)
 
             # Handle failure case if all attempts are exhausted
             if attempts == max_attempts:
@@ -392,43 +371,13 @@ class runAndroidAutomation:
                         )
                         product.click()
                     except Exception:
-                        try:
-                            if self.change_to_usa():
-                                result = None
-                                max_attempts_us = 2
-                                attempts_us = 0
-                                asin = {"status": "None", "msg": "Initial attempt"}
-                                while (
-                                        attempts_us < max_attempts_us
-                                        and asin["status"] != "success"
-                                ):
-                                    asin = self.start_us(fnsku)
-                                    attempts_us += 1
-                                    if asin["status"] == "success":
-                                        result = {
-                                            "status": "success",
-                                            "msg": "Congrats! Your FNSKU code converted to ASIN",
-                                            "asin": asin["code"],
-                                            "fnsku": fnsku,
-                                        }
-                                        break
-                                    elif attempts_us >= max_attempts_us:
-                                        result = {
-                                            "status": "failed",
-                                            "msg": f"No product found.",
-                                            "fnsku": fnsku,
-                                        }
-
-                                self.change_to_canada()
-                                return result
-                        except:
-                            print(
-                                "Failed to find and click the product element after several attempts"
-                            )
-                            return {
-                                "status": "failed",
-                                "msg": "Reached max attempts for trying! No product found",
-                            }
+                        print(
+                            "Failed to find and click the product element after several attempts"
+                        )
+                        return {
+                            "status": "failed",
+                            "msg": "Reached max attempts for trying! No product found",
+                        }
 
             sleep(2)
 
@@ -447,146 +396,6 @@ class runAndroidAutomation:
             opens += 1
             print(f"Error1: {e}")
             return {"status": "failed", "msg": f"Error1: Asin Not Found"}
-
-    def start_canada_old(self, fnsku) -> None:
-        global max_opens
-        global opens
-        try:
-            if opens == max_opens:
-                app_reopened = self.reopen_app()
-                if app_reopened:
-                    opens = 0
-            try:
-                take_pic = self.driver.find_element(
-                    by=AppiumBy.XPATH,
-                    value='//android.widget.ImageView[@resource-id="com.amazon.mShop.android.shopping:id/chrome_action_bar_camera_icon"]',
-                )
-                take_pic.click()
-            except:
-                app_reopened = self.reopen_app()
-                if app_reopened:
-                    opens = 0
-            sleep(5)
-            barcode = self.driver.find_element(
-                by=AppiumBy.XPATH,
-                value='(//android.widget.ImageView[@resource-id="com.amazon.mShop.android.shopping:id/secondary_mode_image"])[3]',
-            )
-            barcode.click()
-            sleep(5)
-
-            max_attempts = 5
-            attempts = 0
-
-            while attempts < max_attempts:
-                try:
-                    # Attempt to find and click the product element
-                    product = self.driver.find_element(
-                        by=AppiumBy.XPATH,
-                        value='//android.webkit.WebView[@text="Amazon.ca"]/android.view.View/android.view.View/android.view.View[2]',
-                    )
-                    product.click()
-                    break  # If the operation succeeds, break out of the loop
-                except:
-                    attempts += 1
-                    try:
-                        sleep(2)
-                        print("Fetch barcode to try search again")
-                        fetch_barcode(fnsku, random.choice((96, 135)))
-                        print("Barcode fetched to try search again")
-                        not_searchable = self.driver.find_element(
-                            by=AppiumBy.XPATH, value=try_again_btn
-                        )
-                        print("Try again search element found")
-                        sleep(2)
-                        not_searchable.click()
-                        print("Try again search clicked")
-                    except:
-                        try:
-                            no_results = self.driver.find_element(
-                                by=AppiumBy.XPATH,
-                                value='//android.widget.TextView[@text="Results Check each product page for other buying options."]',
-                            )
-                            changed_to_us = self.change_to_usa()
-
-                            if changed_to_us == True:
-                                result = None
-                                max_attempts = 2
-                                attempts = 0
-                                asin = {"status": "None", "msg": "Initial attempt"}
-                                while (
-                                        attempts < max_attempts
-                                        and asin["status"] != "success"
-                                ):
-                                    asin = self.start_us(fnsku)
-                                    attempts += 1
-                                    if asin["status"] == "success":
-                                        result = {
-                                            "status": "success",
-                                            "msg": "Congrats! Your FNSKU code converted to ASIN",
-                                            "asin": asin["code"],
-                                            "fnsku": fnsku,
-                                        }
-                                        break
-                                    elif attempts >= max_attempts:
-                                        result = {
-                                            "status": "failed",
-                                            "msg": f"No product found.",
-                                            "fnsku": fnsku,
-                                        }
-
-                                self.change_to_canada()
-                                return result
-                        except:
-                            print("Continue", e)
-                            continue
-                    sleep(2)
-                    print(f"Attempt {attempts} failed: {e}")
-                    sleep(1)  # Optional: wait for a second before retrying
-
-            # If the loop finishes without breaking, handle the failure case
-            if attempts == max_attempts:
-                try:
-                    scn_product_type = '//android.view.View[@resource-id="search"]/android.view.View[4]'
-                    # Attempt to find and click the product element
-                    product = self.driver.find_element(
-                        by=AppiumBy.XPATH,
-                        value=scn_product_type,
-                    )
-                    product.click()
-                except:
-                    try:
-                        thr_product_type = '//android.webkit.WebView[@text="Amazon.ca"]/android.view.View/android.view.View/android.view.View[2]'
-                        # Attempt to find and click the product element
-                        product = self.driver.find_element(
-                            by=AppiumBy.XPATH,
-                            value=thr_product_type,
-                        )
-                        product.click()
-                    except:
-                        # Code to handle the failure
-                        print(
-                            "Failed to find and click the product element after several attempts"
-                        )
-                        # Include the code you want to run in case of failure here
-                        return {
-                            "status": "failed",
-                            "msg": "Reached max attempts for trying!",
-                        }
-
-            sleep(2)
-
-            # Get ASIN from page source
-            clipboard_text = self.share_finder('//android.widget.Image[@text="Share"]')
-            asin = get_asin_from_text(clipboard_text)
-            self.tearDown()
-            opens += 1
-            if asin is not None:
-                return {"status": "success", "code": asin}
-            else:
-                return {"status": "failed", "msg": "Not found ASIN"}
-        except Exception as e:
-            opens += 1
-            return {"status": "failed", "msg": f"Error: {e}"}
 
 
 # Replace these with your actual username and password
@@ -661,6 +470,7 @@ def fetch_barcode(data, dpi=444):
     else:
         print(f"Failed to fetch barcode. Status code: {response.status_code}")
         return {"status": "failed", "msg": f"Response Content: {response}"}
+
 
 def fetch_barcode_old(data, dpi=444):
     base_url = "https://barcode.tec-it.com/barcode.ashx"
