@@ -10,6 +10,10 @@ from email.mime.text import MIMEText
 from dotenv import load_dotenv
 from funcs import runAndroidAutomation, fetch_barcode
 from threading import Lock
+from decorators import check_api
+import requests
+import json
+import datetime
 
 load_dotenv()
 
@@ -273,15 +277,8 @@ def hello_world():
     return "Hello, World!"
 
 
-@app.route("/fnsku-converter", methods=["GET"])
-def convert_fnsku_to_asin():
+def fnsku_to_asin_logic(fnskus):
     with lock:
-        fnskus = request.args.getlist("fnsku")
-        if not fnskus:
-            return jsonify(
-                {"status": "failed", "msg": "At least one FNSKU Code is required!"}
-            )
-
         results = []
         for fnsku in fnskus:
             try:
@@ -318,7 +315,240 @@ def convert_fnsku_to_asin():
                     {"status": "failed", "msg": f"Error: {e}", "fnsku": fnsku}
                 )
 
-        return jsonify(results)
+        return results
+
+
+def upc_to_asin_logic(code):
+    url = "https://app.rocketsource.io/api/v3/convert"
+
+    payload = json.dumps({"marketplace": "CA", "ids": [code]})
+    headers = {
+        "Content-Type": "application/json",
+        # "Authorization": f'Bearer {os.getenv("ROCKETSOURCE_API_BEARER_TOKEN")}',
+        "Authorization": f"Bearer 3498|j6TA6NcO6xskcTkjMcqLN7NMRiWPZUmnda3B53359fbec614",
+    }
+
+    response = requests.request("POST", url, headers=headers, data=payload)
+
+    response = response.json()
+    print("UPC to ASIN response: ", response)
+    return response
+
+
+@app.route("/fnsku-converter", methods=["GET"])
+def convert_fnsku_to_asin():
+    fnskus = request.args.getlist("fnsku")
+    if not fnskus:
+        return jsonify(
+            {"status": "failed", "msg": "At least one FNSKU Code is required!"}
+        )
+
+    results = fnsku_to_asin_logic(fnskus)
+    return jsonify(results)
+
+
+def image_gsearch(query, num):
+    try:
+        api_key = os.getenv("GSEARCH_API_KEY")
+        cx = "96037465e37034601"
+        request_url = f"https://www.googleapis.com/customsearch/v1?key={api_key}&cx={cx}&q={query}&searchType=image&num={num}"
+
+        response = requests.get(request_url)
+        print("Response code: ", response)
+        if response.status_code == 200:
+            data = response.json()
+            if "items" in data and len(data["items"]) > 0:
+                image_urls = {}
+                for i, item in enumerate(data["items"][:10]):
+                    image_url = item["link"]
+                    cleaned_image_url = (
+                        image_url.replace(",", ".jpg").split(".jpg")[0] + ".jpg"
+                    )
+                    field_name = f"Online Image {i + 1}"
+                    image_urls[field_name] = cleaned_image_url
+                return image_urls
+        return {"status": "failed", "msg": "NO images, something went wrong!"}
+    except Exception as e:
+        print("Here is the error: ", e)
+        return None
+
+
+@app.route("/custom-gsearch", methods=["GET"])
+@check_api
+def custom_gsearch():
+    try:
+        query = request.args.get("q")
+        search_type = request.args.get("searchType")
+        results_num = request.args.get("num")
+        if not query and not search_type and not results_num:
+            return jsonify(
+                {
+                    "status": "failed",
+                    "msg": "Search Query, Search Type and Results Nums are Required ( q=your-search-query, searchType=image, num=10 ) !",
+                }
+            )
+        results = None
+        if search_type == "image":
+            results = image_gsearch(query, results_num)
+
+        return results
+    except Exception as e:
+        print("Here is the error in custom_gsearch:", e)
+        return jsonify({"status": "failed", "msg": "something went wrong!"})
+
+
+def get_price_history(asin):
+    keepa_api_key = os.getenv("KEEPA_API_KEY")
+    url = f"https://api.keepa.com/product?key={keepa_api_key}&domain=6&asin={asin}"
+
+    response = requests.request("GET", url)
+
+    response = response.text
+
+    json_data = json.loads(response)
+    csv_data = json_data["products"][0]["csv"][1]
+
+    # Iterate in reverse to find the last available price
+    for i in range(len(csv_data) - 1, 0, -2):
+        if csv_data[i] != -1:
+            last_available_timestamp = csv_data[i - 1]
+            last_available_price = csv_data[i]
+            break
+
+    def convert_unix_to_human_time(unix_epoch_time):
+        # Convert Unix epoch time to human-readable time
+        human_time = datetime.datetime.fromtimestamp(unix_epoch_time)
+        return human_time.strftime("%Y-%m-%d %H:%M:%S")
+
+    unix_epoch_time = last_available_timestamp + 21564000
+    unix_epoch_time = unix_epoch_time * 60
+    human_time = convert_unix_to_human_time(unix_epoch_time)
+
+    return {"timestamp": human_time, "price": last_available_price / 100}
+
+
+def product_scraperapi(asins):
+    scraperapi_api_key = os.getenv("SCRAPERAPI_API_KEY")
+    results = []
+    for asin in asins:
+        url = f"https://api.scraperapi.com/structured/amazon/product?api_key={scraperapi_api_key}&asin={asin}&country=amazon.ca&tld=ca&output=json"
+
+        payload = {}
+        headers = {}
+
+        response = requests.request("GET", url, headers=headers, data=payload)
+
+        response = json.loads(response.text)
+        if (
+            "full_description" in response
+            and "pricing" in response
+            and "name" in response
+        ):
+            results.append(
+                {
+                    "asin": asin,
+                    "title": response["name"],
+                    "description": response["full_description"],
+                    "price": response["pricing"],
+                    "image": response["images"][0],
+                    "status": "success",
+                }
+            )
+        elif (
+            "full_description" not in response
+            and "pricing" in response
+            and "name" in response
+        ):
+            results.append(
+                {
+                    "asin": asin,
+                    "title": response["name"],
+                    "price": response["pricing"],
+                    "image": response["images"][0],
+                    "status": "success",
+                }
+            )
+        elif (
+            "full_description" not in response
+            and "pricing" not in response
+            and "name" in response
+        ):
+            last_price = get_price_history(asin)
+            results.append(
+                {
+                    "asin": asin,
+                    "title": response["name"],
+                    "price": f"${last_price['price']}",
+                    "image": response["images"][0],
+                    "status": "success",
+                }
+            )
+        elif (
+            "full_description" in response
+            and "pricing" not in response
+            and "name" in response
+        ):
+            last_price = get_price_history(asin)
+            results.append(
+                {
+                    "asin": asin,
+                    "title": response["name"],
+                    "description": response["full_description"],
+                    "price": f"${last_price['price']}",
+                    "image": response["images"][0],
+                    "status": "success",
+                }
+            )
+    return results
+
+
+@app.route("/product-scraper", methods=["GET"])
+@check_api
+def product_scraper():
+    products_codes = request.args.getlist("product_code")
+    if not products_codes:
+        return jsonify(
+            {"status": "failed", "msg": "At least one Product Code is required!"}
+        )
+    products_asins = []
+    for product_code in products_codes:
+        asin = None
+        # Check if the code is ASIN
+        if product_code.startswith("B0") and len(product_code) == 10:
+            asin = product_code
+
+        # Check if the code is FNSKU
+        elif product_code.startswith("X0") and len(product_code) == 10:
+            results = fnsku_to_asin_logic([product_code])
+            if results[0]["status"] == "success":
+                asin = results[0]["asin"]
+
+        # Check if the code is UPC (12 digits)
+        elif len(product_code) == 12 and product_code.isdigit():
+            results = upc_to_asin_logic(product_code)
+            if results[product_code]:
+                asin = results[product_code][0]
+
+        products_asins.append(asin)
+
+    results = product_scraperapi(products_asins)
+    return (
+        {"message": "You have access to this endpoint", "items": results},
+        200,
+    )
+
+
+@app.route("/search-products", methods=["GET"])
+@check_api
+def search_products():
+    query = request.args.get("title")
+    if not query:
+        return jsonify({"status": "failed", "msg": "title is required parameter!"})
+    scraperapi_api_key = os.getenv("SCRAPERAPI_API_KEY")
+    url = f"https://api.scraperapi.com/structured/amazon/search?api_key={scraperapi_api_key}&country=ca&tld=ca&output=json&query={query}"
+    response = requests.request("GET", url)
+    response = json.loads(response.text)
+    return response
 
 
 if __name__ == "__main__":
