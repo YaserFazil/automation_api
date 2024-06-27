@@ -506,6 +506,8 @@ def product_scraperapi(asins):
 @check_api
 def product_scraper():
     products_codes = request.args.getlist("product_code")
+    entry_id = request.args.getlist("entryId")
+    print("Here is the entry id: ", entry_id)
     if not products_codes:
         return jsonify(
             {"status": "failed", "msg": "At least one Product Code is required!"}
