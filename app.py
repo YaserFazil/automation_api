@@ -552,7 +552,7 @@ def product_scraper():
         user = user_response["Item"]
         memento_lib_id = user["memento_lib_id"]
         memento_token = user["memento_token"]
-        memento_entryid = entry_id
+        memento_entryid = entry_id[0]
         print("updating memento entry")
         updated_entry = update_memento_entry(
             memento_lib_id,
