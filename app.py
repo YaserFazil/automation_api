@@ -506,10 +506,10 @@ def update_memento_entry(
     memento_lib_id,
     memento_token,
     memento_entryid,
-    entry_title="No entry title",
-    entry_msrp="No MSRP",
-    entry_image="https://example.com",
-    entry_description="No description",
+    entry_title="",
+    entry_msrp="",
+    entry_image="",
+    entry_description="",
 ):
     try:
         url = f"https://api.mementodatabase.com/v1/libraries/{memento_lib_id}/entries/{memento_entryid}?token={memento_token}"
