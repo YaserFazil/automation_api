@@ -513,6 +513,7 @@ def product_scraper():
             {"status": "failed", "msg": "At least one Product Code is required!"}
         )
     products_asins = []
+    is_fnsku = False
     for product_code in products_codes:
         asin = None
         # Check if the code is ASIN
@@ -524,6 +525,7 @@ def product_scraper():
             results = fnsku_to_asin_logic([product_code])
             if results[0]["status"] == "success":
                 asin = results[0]["asin"]
+                is_fnsku = True
 
         # Check if the code is UPC (12 digits)
         elif len(product_code) == 12 and product_code.isdigit():
@@ -534,10 +536,75 @@ def product_scraper():
         products_asins.append(asin)
 
     results = product_scraperapi(products_asins)
+    if is_fnsku:
+        print("It's FNSKU")
+        soniclister_api_key = request.args.get("soniclister-api-key")
+        # Initialize the DynamoDB client
+        dynamodb = boto3.resource("dynamodb", region_name="ca-central-1")
+        users_table = dynamodb.Table("users")
+        user_response = users_table.get_item(Key={"id": soniclister_api_key})
+        user = user_response.get("Item")
+        memento_lib_id = user.get("memento_lib_id")
+        memento_token = user.get("memento_token")
+        memento_entryid = entry_id
+        update_memento_entry(
+            memento_lib_id,
+            memento_token,
+            memento_entryid,
+            results["title"],
+            results["price"],
+            results["image"],
+            results["description"],
+        )
     return (
         {"message": "You have access to this endpoint", "items": results},
         200,
     )
+
+
+def update_memento_entry(
+    memento_lib_id,
+    memento_token,
+    memento_entryid,
+    entry_title,
+    entry_msrp,
+    entry_image,
+    entry_description=None,
+):
+
+    url = f"https://api.mementodatabase.com/v1/libraries/{memento_lib_id}/entries/{memento_entryid}?token={memento_token}"
+
+    payload = json.dumps(
+        {
+            "fields": [
+                {
+                    "id": 53,
+                    "name": "Title",
+                    "type": "text",
+                    "value": entry_title,
+                },
+                {
+                    "id": 12,
+                    "name": "Description",
+                    "type": "text",
+                    "value": entry_description,
+                },
+                {"id": 13, "name": "MSRP", "type": "text", "value": entry_msrp},
+                {
+                    "id": 27,
+                    "name": "Auto-Image",
+                    "type": "image",
+                    "value": [entry_image],
+                },
+            ]
+        }
+    )
+    headers = {"Content-Type": "application/json"}
+
+    response = requests.request("PATCH", url, headers=headers, data=payload)
+
+    print(response.text)
+    return True
 
 
 @app.route("/search-products", methods=["GET"])
