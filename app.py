@@ -542,10 +542,15 @@ def product_scraper():
         # Initialize the DynamoDB client
         dynamodb = boto3.resource("dynamodb", region_name="ca-central-1")
         users_table = dynamodb.Table("users")
-        user_response = users_table.get_item(Key={"id": soniclister_api_key})
-        user = user_response.get("Item")
-        memento_lib_id = user.get("memento_lib_id")
-        memento_token = user.get("memento_token")
+        # Define the attributes (columns) you want to retrieve
+        attributes_to_get = ["memento_lib_id", "memento_token"]
+        user_response = users_table.get_item(
+            Key={"id": soniclister_api_key},
+            ProjectionExpression=", ".join(attributes_to_get),
+        )
+        user = user_response["Item"]
+        memento_lib_id = user["memento_lib_id"]
+        memento_token = user["memento_token"]
         memento_entryid = entry_id
         update_memento_entry(
             memento_lib_id,
