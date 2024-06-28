@@ -514,9 +514,7 @@ def update_memento_entry(
     try:
         url = f"https://api.mementodatabase.com/v1/libraries/{memento_lib_id}/entries/{memento_entryid}?token={memento_token}"
         # Determine scrape status based on the entry_title
-        scrape_status = (
-            "Scrape Failed" if entry_title == "No entry title" else "Scrape Successful"
-        )
+        scrape_status = "Scrape Failed" if entry_title == "" else "Scrape Successful"
         payload = json.dumps(
             {
                 "fields": [
