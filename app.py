@@ -626,6 +626,10 @@ def product_scraper():
                     results["price"],
                     results["image"],
                 )
+            else:
+                updated_entry = update_memento_entry(
+                    memento_lib_id, memento_token, memento_entryid
+                )
     return (
         {"message": "You have access to this endpoint", "items": results},
         200,
