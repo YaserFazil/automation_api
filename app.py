@@ -536,6 +536,12 @@ def update_memento_entry(
                         "type": "image",
                         "value": [entry_image],
                     },
+                    {
+                        "id": 58,
+                        "name": "Scrape Status",
+                        "type": "choice",
+                        "value": "Scrape Successful",
+                    },
                 ]
             }
         )
