@@ -553,8 +553,8 @@ def product_scraper():
         memento_lib_id = user["memento_lib_id"]
         memento_token = user["memento_token"]
         memento_entryid = entry_id
-        print("Getting data from dynamodb")
-        update_memento_entry(
+        print("updating memento entry")
+        updated_entry = update_memento_entry(
             memento_lib_id,
             memento_token,
             memento_entryid,
@@ -579,6 +579,7 @@ def update_memento_entry(
     entry_description=None,
 ):
     try:
+        print("here 1")
         url = f"https://api.mementodatabase.com/v1/libraries/{memento_lib_id}/entries/{memento_entryid}?token={memento_token}"
 
         payload = json.dumps(
@@ -607,9 +608,9 @@ def update_memento_entry(
             }
         )
         headers = {"Content-Type": "application/json"}
-
+        print("here 2")
         response = requests.request("PATCH", url, headers=headers, data=payload)
-
+        print("here 3")
         print(response.text)
         return True
     except Exception as e:
