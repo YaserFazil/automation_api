@@ -506,14 +506,15 @@ def update_memento_entry(
     memento_lib_id,
     memento_token,
     memento_entryid,
-    entry_title,
-    entry_msrp,
-    entry_image,
+    entry_title=None,
+    entry_msrp=None,
+    entry_image=None,
     entry_description=None,
 ):
     try:
         url = f"https://api.mementodatabase.com/v1/libraries/{memento_lib_id}/entries/{memento_entryid}?token={memento_token}"
-
+        # Determine scrape status based on the entry_title
+        scrape_status = "Scrape Failed" if entry_title is None else "Scrape Successful"
         payload = json.dumps(
             {
                 "fields": [
@@ -540,7 +541,7 @@ def update_memento_entry(
                         "id": 58,
                         "name": "Scrape Status",
                         "type": "choice",
-                        "value": "Scrape Successful",
+                        "value": scrape_status,
                     },
                 ]
             }
@@ -604,16 +605,27 @@ def product_scraper():
         memento_lib_id = user["memento_lib_id"]
         memento_token = user["memento_token"]
         memento_entryid = entry_id[0]
-        results = results[0]
-        updated_entry = update_memento_entry(
-            memento_lib_id,
-            memento_token,
-            memento_entryid,
-            results["title"],
-            results["price"],
-            results["image"],
-            results["description"],
-        )
+        if results:
+            results = results[0]
+            if "title" in results and "description" in results:
+                updated_entry = update_memento_entry(
+                    memento_lib_id,
+                    memento_token,
+                    memento_entryid,
+                    results["title"],
+                    results["price"],
+                    results["image"],
+                    results["description"],
+                )
+            elif "title" in results and "description" not in results:
+                updated_entry = update_memento_entry(
+                    memento_lib_id,
+                    memento_token,
+                    memento_entryid,
+                    results["title"],
+                    results["price"],
+                    results["image"],
+                )
     return (
         {"message": "You have access to this endpoint", "items": results},
         200,
