@@ -569,53 +569,6 @@ def product_scraper():
     )
 
 
-def update_memento_entry(
-    memento_lib_id,
-    memento_token,
-    memento_entryid,
-    entry_title,
-    entry_msrp,
-    entry_image,
-    entry_description=None,
-):
-    try:
-        print("here 1")
-        url = f"https://api.mementodatabase.com/v1/libraries/{memento_lib_id}/entries/{memento_entryid}?token={memento_token}"
-
-        payload = json.dumps(
-            {
-                "fields": [
-                    {
-                        "id": 53,
-                        "name": "Title",
-                        "type": "text",
-                        "value": entry_title,
-                    },
-                    {
-                        "id": 12,
-                        "name": "Description",
-                        "type": "text",
-                        "value": entry_description,
-                    },
-                    {"id": 13, "name": "MSRP", "type": "text", "value": entry_msrp},
-                    {
-                        "id": 27,
-                        "name": "Auto-Image",
-                        "type": "image",
-                        "value": [entry_image],
-                    },
-                ]
-            }
-        )
-        headers = {"Content-Type": "application/json"}
-        print("here 2")
-        response = requests.request("PATCH", url, headers=headers, data=payload)
-        print("here 3")
-        print(response.text)
-        return True
-    except Exception as e:
-        print("Error updating memento entry:", e)
-        return False
 
 
 @app.route("/search-products", methods=["GET"])
