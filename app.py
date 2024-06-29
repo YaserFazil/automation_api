@@ -581,7 +581,7 @@ def product_scraper():
             is_fnsku = True
 
         # Check if the code is UPC (12 digits)
-        elif len(product_code) == 12 and product_code.isdigit():
+        elif product_code.isdigit():
             results = upc_to_asin_logic(product_code)
             if results[product_code]:
                 asin = results[product_code][0]
