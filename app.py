@@ -671,6 +671,7 @@ def insert_products_mementodb(memento_lib_id, memento_token, memento_entryid, da
                 ]
             )
         payload = json.dumps({"fields": fields})
+        print(fields)
         headers = {"Content-Type": "application/json"}
         response = requests.request("PATCH", url, headers=headers, data=payload)
         print(response.text)
