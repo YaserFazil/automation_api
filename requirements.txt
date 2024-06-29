@@ -9,3 +9,4 @@ gunicorn==22.0.0
 pillow==10.3.0
 Appium-Python-Client==4.0.0
 apify-client==1.7.0
+openai==1.35.7
