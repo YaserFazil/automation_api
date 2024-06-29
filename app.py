@@ -631,7 +631,7 @@ def search_products():
         return jsonify({"status": "failed", "msg": "title is required parameter!"})
     memento_lib_id = request.args.get("memento_lib_id")
     memento_token = request.args.get("mementoToken")
-    memento_entryid = request.args.get("entryId")[0]
+    memento_entryid = request.args.get("entryId")
     scraperapi_api_key = os.getenv("SCRAPERAPI_API_KEY")
     amazon_search_url = f"https://api.scraperapi.com/structured/amazon/search?api_key={scraperapi_api_key}&country=ca&tld=ca&output=json&query={query}"
     gshopping_search_url = f"https://api.scraperapi.com/structured/google/shopping?api_key={scraperapi_api_key}&country=ca&query={query}"
