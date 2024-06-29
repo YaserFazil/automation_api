@@ -20,7 +20,7 @@ def create_entries_products_for_msrps(msrps):
             "id": id_sequence[index],
             "name": f"MSRP {index + 1}",
             "type": "text",
-            "value": msrp,
+            "value": f"{msrp}",
         }
         entries_products.append(entry)
     return entries_products
