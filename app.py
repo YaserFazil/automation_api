@@ -589,47 +589,34 @@ def product_scraper():
         products_asins.append(asin)
 
     results = product_scraperapi(products_asins)
-    if is_fnsku:
-        print("It's FNSKU")
-        soniclister_api_key = request.args.get("soniclister-api-key")
-        # Initialize the DynamoDB client
-        dynamodb = boto3.resource("dynamodb", region_name="ca-central-1")
-        users_table = dynamodb.Table("users")
-        # Define the attributes (columns) you want to retrieve
-        attributes_to_get = ["memento_lib_id", "memento_token"]
-        user_response = users_table.get_item(
-            Key={"id": soniclister_api_key},
-            ProjectionExpression=", ".join(attributes_to_get),
-        )
-        user = user_response["Item"]
-        memento_lib_id = user["memento_lib_id"]
-        memento_token = user["memento_token"]
-        memento_entryid = entry_id[0]
-        if results:
-            results = results[0]
-            if "title" in results and "description" in results:
-                updated_entry = update_memento_entry(
-                    memento_lib_id,
-                    memento_token,
-                    memento_entryid,
-                    results["title"],
-                    results["price"],
-                    results["image"],
-                    results["description"],
-                )
-            elif "title" in results and "description" not in results:
-                updated_entry = update_memento_entry(
-                    memento_lib_id,
-                    memento_token,
-                    memento_entryid,
-                    results["title"],
-                    results["price"],
-                    results["image"],
-                )
-        else:
+    memento_lib_id = request.args.get("memento_lib_id")
+    memento_token = request.args.get("mementoToken")
+    memento_entryid = entry_id[0]
+    if results:
+        results = results[0]
+        if "title" in results and "description" in results:
             updated_entry = update_memento_entry(
-                memento_lib_id, memento_token, memento_entryid
+                memento_lib_id,
+                memento_token,
+                memento_entryid,
+                results["title"],
+                results["price"],
+                results["image"],
+                results["description"],
             )
+        elif "title" in results and "description" not in results:
+            updated_entry = update_memento_entry(
+                memento_lib_id,
+                memento_token,
+                memento_entryid,
+                results["title"],
+                results["price"],
+                results["image"],
+            )
+    else:
+        updated_entry = update_memento_entry(
+            memento_lib_id, memento_token, memento_entryid
+        )
     return (
         {"message": "You have access to this endpoint", "items": results},
         200,
