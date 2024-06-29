@@ -596,9 +596,9 @@ def product_scraper():
     if results:
         results = results[0]
         if "title" in results and "description" in results:
-            description = rewrite_product_description(
-                f"{results['title']} {results['description']}"
-            )
+            # description = rewrite_product_description(
+            #     f"{results['title']} {results['description']}"
+            # )
             updated_entry = update_memento_entry(
                 memento_lib_id,
                 memento_token,
@@ -606,7 +606,7 @@ def product_scraper():
                 results["title"],
                 results["price"],
                 results["image"],
-                description,
+                results["description"],
             )
         elif "title" in results and "description" not in results:
             updated_entry = update_memento_entry(
