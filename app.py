@@ -652,7 +652,7 @@ def insert_products_mementodb(memento_lib_id, memento_token, memento_entryid, da
         msrps = []
         if len(data["shopping_results"]) > 0:
             # Determine scrape status based on the shopping_results
-            scrape_status = "Scrape Successful"
+            scrape_status = "Manual Entry Data Scraped"
             for result in data["shopping_results"]:
                 images.append(result["thumbnail"])
                 msrps.append(result["extracted_price"])
