@@ -1,4 +1,8 @@
 from openai import OpenAI
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def rewrite_product_description(description: str) -> str:
@@ -12,7 +16,7 @@ def rewrite_product_description(description: str) -> str:
         str: The rewritten product description in simple sentences.
     """
     # Set up your OpenAI API credentials here
-    api_key = "sk-proj-ZX52gNkDpURsvyy1WWofT3BlbkFJyXFDYV6616fbBFG5eWPU"
+    api_key = os.getenv("OPENAI_API_KEY")
 
     # Initialize the OpenAI API client
     client = OpenAI(api_key=api_key)
