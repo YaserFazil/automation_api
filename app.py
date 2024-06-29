@@ -646,14 +646,6 @@ from products_payload import *
 
 def insert_products_mementodb(memento_lib_id, memento_token, memento_entryid, data):
     try:
-        print(
-            "Memento lib id: ",
-            memento_lib_id,
-            "Memento entry id: ",
-            memento_entryid,
-            "Memento Token : ",
-            memento_token,
-        )
         url = f"https://api.mementodatabase.com/v1/libraries/{memento_lib_id}/entries/{memento_entryid}?token={memento_token}"
         scrape_status = "Scrape Failed"
         images = []
@@ -679,10 +671,8 @@ def insert_products_mementodb(memento_lib_id, memento_token, memento_entryid, da
                 ]
             )
         payload = json.dumps({"fields": fields})
-        print(fields)
         headers = {"Content-Type": "application/json"}
         response = requests.request("PATCH", url, headers=headers, data=payload)
-        print(response.text)
         return True
     except Exception as e:
         print("Error updating memento entry:", e)
