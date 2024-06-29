@@ -24,3 +24,21 @@ def create_entries_products_for_msrps(msrps):
         }
         entries_products.append(entry)
     return entries_products
+
+
+images = [
+    "asldkjf",
+    "kfdsj",
+    "lskdjf",
+    "lskjdf",
+    "lskdjf",
+    "sldjf",
+    "slkfdj",
+    "lskfdj",
+    "sfkj",
+    "skdjflk",
+]
+
+images_links = create_entries_products_for_images(images)
+msrps = create_entries_products_for_msrps(images)
+print(images_links + msrps)
