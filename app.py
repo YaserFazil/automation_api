@@ -658,9 +658,8 @@ def insert_products_mementodb(memento_lib_id, memento_token, memento_entryid, da
                 msrps.append(result["extracted_price"])
             images_list = create_entries_products_for_images(images)
             msrps_list = create_entries_products_for_msrps(msrps)
-        payload = json.dumps(
-            {
-                "fields": images_list
+            fields = (
+                images_list
                 + msrps_list
                 + [
                     {
@@ -668,10 +667,11 @@ def insert_products_mementodb(memento_lib_id, memento_token, memento_entryid, da
                         "name": "Scrape Status",
                         "type": "choice",
                         "value": scrape_status,
-                    },
+                    }
                 ]
-            }
-        )
+            )
+            print("Here is fields: ", fields)
+        payload = json.dumps({"fields": fields})
         headers = {"Content-Type": "application/json"}
         response = requests.request("PATCH", url, headers=headers, data=payload)
         print(response.text)
