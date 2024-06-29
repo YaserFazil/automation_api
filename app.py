@@ -643,8 +643,9 @@ def search_products():
     if not query:
         return jsonify({"status": "failed", "msg": "title is required parameter!"})
     scraperapi_api_key = os.getenv("SCRAPERAPI_API_KEY")
-    url = f"https://api.scraperapi.com/structured/amazon/search?api_key={scraperapi_api_key}&country=ca&tld=ca&output=json&query={query}"
-    response = requests.request("GET", url)
+    amazon_search_url = f"https://api.scraperapi.com/structured/amazon/search?api_key={scraperapi_api_key}&country=ca&tld=ca&output=json&query={query}"
+    gshopping_search_url = f"https://api.scraperapi.com/structured/google/shopping?api_key={scraperapi_api_key}&country=ca&query={query}"
+    response = requests.request("GET", gshopping_search_url)
     response = json.loads(response.text)
     return response
 
