@@ -629,12 +629,56 @@ def search_products():
     query = request.args.get("title")
     if not query:
         return jsonify({"status": "failed", "msg": "title is required parameter!"})
+    memento_lib_id = request.args.get("memento_lib_id")
+    memento_token = request.args.get("mementoToken")
+    memento_entryid = request.args.get("entryId")[0]
     scraperapi_api_key = os.getenv("SCRAPERAPI_API_KEY")
     amazon_search_url = f"https://api.scraperapi.com/structured/amazon/search?api_key={scraperapi_api_key}&country=ca&tld=ca&output=json&query={query}"
     gshopping_search_url = f"https://api.scraperapi.com/structured/google/shopping?api_key={scraperapi_api_key}&country=ca&query={query}"
     response = requests.request("GET", gshopping_search_url)
     response = json.loads(response.text)
+    insert_products_mementodb(memento_lib_id, memento_token, memento_entryid, response)
     return response
+
+
+from products_payload import *
+
+
+def insert_products_mementodb(memento_lib_id, memento_token, memento_entryid, data):
+    try:
+        url = f"https://api.mementodatabase.com/v1/libraries/{memento_lib_id}/entries/{memento_entryid}?token={memento_token}"
+        scrape_status = "Scrape Failed"
+        images = []
+        msrps = []
+        if len(data["shopping_results"]) > 0:
+            # Determine scrape status based on the shopping_results
+            scrape_status = "Scrape Successful"
+            for result in data["shopping_results"]:
+                images.append(result["thumbnail"])
+                msrps.append(result["extracted_price"])
+            images_list = create_entries_products_for_images(images)
+            msrps_list = create_entries_products_for_msrps(msrps)
+        payload = json.dumps(
+            {
+                "fields": images_list
+                + msrps_list
+                + [
+                    {
+                        "id": 58,
+                        "name": "Scrape Status",
+                        "type": "choice",
+                        "value": scrape_status,
+                    },
+                ]
+            }
+        )
+        headers = {"Content-Type": "application/json"}
+        response = requests.request("PATCH", url, headers=headers, data=payload)
+        print(response.text)
+        return True
+    except Exception as e:
+        print("Error updating memento entry:", e)
+        return False
 
 
 if __name__ == "__main__":
