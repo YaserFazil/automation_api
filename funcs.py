@@ -30,7 +30,7 @@ copy_clipboard = (
     '//android.widget.LinearLayout[@resource-id="android:id/chooser_action_row"]'
 )
 copy_clipboard = (
-    '//android.widget.Button[@resource-id="android:id/chooser_copy_button"]'
+    '//android.widget.FrameLayout[@content-desc="Copy"]/android.widget.ImageView'
 )
 share_action = '//android.view.View[@resource-id="ssf-share-action"]'
 
