@@ -68,6 +68,7 @@ class runAndroidAutomation:
             )
             copy_icon.click()
             clipboard = self.driver.get_clipboard_text()
+            print("Clipboard Text: ", clipboard)
             return clipboard
         except:
             return None
@@ -556,12 +557,13 @@ def get_asin_from_text(text):
     # Find the short URL in the text
     short_url_pattern = r"https://a\.co/d/[A-Za-z0-9]+"
     short_url_match = re.search(short_url_pattern, text)
-
+    print("Shared URL of the product: ", text)
     if short_url_match:
         short_url = short_url_match.group(0)
         expanded_url = expand_url(short_url)
         if expanded_url:
             asin = extract_asin_from_url(expanded_url)
+            print("Asin from text: ", asin)
             return asin
         else:
             return None
