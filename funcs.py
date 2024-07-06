@@ -460,7 +460,7 @@ def fetch_barcode(data, dpi=444):
         rotated_image = image.rotate(360, expand=True)
 
         # Save the rotated image as 'barcode.png'
-        rotated_image.save("./barcode.png", format="PNG")
+        rotated_image.save("./images/barcode.png", format="PNG")
         print("Barcode image saved as 'barcode.png'")
 
         # Return success response
