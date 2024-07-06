@@ -4,4 +4,4 @@ venv/
 .python-version
 __pycache__/
 .idea/
-barcode.png
+images/
