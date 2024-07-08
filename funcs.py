@@ -586,5 +586,6 @@ def glens_results(image_url):
 
     search = GoogleSearch(params)
     results = search.get_dict()
+    print("Glens results: ", results)
     title = results["visual_matches"][0]["title"]
     return title
