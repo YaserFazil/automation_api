@@ -643,7 +643,7 @@ def search_products():
             {"status": "failed", "msg": "title or image is required parameter!"}
         )
     if image is not None:
-        print("Image: ", image)
+        print("Image: ", image + "&lib=" + image_lib)
         query = glens_results(image + "&lib=" + image_lib)
         print("Title from glens: ", query)
         sleep(5)
