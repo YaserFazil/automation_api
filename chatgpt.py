@@ -41,7 +41,6 @@ def get_item_name_from_image(image):
 
     # OpenAI API Key
     api_key = os.getenv("OPENAI_API_KEY")
-    api_key = "sk-proj-HygGpCTeAiVKMDpLxUxDT3BlbkFJNZrVy8hRBmvCowqnTHMJ"
 
     # Function to encode the image
     def encode_image(image_path):
