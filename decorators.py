@@ -15,7 +15,6 @@ def check_api(func):
         # Retrieve the API key from the request header
         api_key_sent = request.headers.get("api-key")
         soniclister_api_key = request.args.get("soniclister-api-key")
-        print(soniclister_api_key)
         if not api_key_sent and not soniclister_api_key:
             print("api key missing", request.headers)
             return jsonify({"error": "API key header is missing"}), 401

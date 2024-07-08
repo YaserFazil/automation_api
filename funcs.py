@@ -569,3 +569,22 @@ def get_asin_from_text(text):
             return None
     else:
         return None
+
+
+from serpapi import GoogleSearch
+
+
+def glens_results(image_url):
+    serpapi_api_key = os.getenv("SERPAPI_COM_API_KEY")
+    params = {
+        "api_key": serpapi_api_key,
+        "engine": "google_lens",
+        "url": f"{image_url}",
+        "hl": "en",
+        "country": "ca",
+    }
+
+    search = GoogleSearch(params)
+    results = search.get_dict()
+    title = results["visual_matches"][0]["title"]
+    return title

@@ -8,7 +8,7 @@ import zipfile
 import smtplib
 from email.mime.text import MIMEText
 from dotenv import load_dotenv
-from funcs import runAndroidAutomation, fetch_barcode
+from funcs import runAndroidAutomation, fetch_barcode, glens_results
 from threading import Lock
 from decorators import check_api
 import requests
@@ -629,12 +629,24 @@ def product_scraper():
     )
 
 
+from time import sleep
+
+
 @app.route("/search-products", methods=["GET"])
 @check_api
 def search_products():
     query = request.args.get("title")
-    if not query:
-        return jsonify({"status": "failed", "msg": "title is required parameter!"})
+    image = request.args.get("image")
+    image_lib = request.args.get("lib")
+    if not query or not image:
+        return jsonify(
+            {"status": "failed", "msg": "title or image is required parameter!"}
+        )
+    if image is not None:
+        print("Image: ", image)
+        query = glens_results(image + "&lib=" + image_lib)
+        print("Title from glens: ", query)
+        sleep(5)
     memento_lib_id = request.args.get("memento_lib_id")
     memento_token = request.args.get("mementoToken")
     memento_entryid = request.args.get("entryId")
