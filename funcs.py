@@ -1,6 +1,9 @@
 from appium import webdriver
 from appium.options.android import UiAutomator2Options
 from appium.webdriver.common.appiumby import AppiumBy
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 from time import sleep
 from dotenv import load_dotenv
 import os
@@ -57,10 +60,16 @@ class runAndroidAutomation:
 
     def get_text_from_clipboard(self, share_xpath):
         try:
-            share_icon = self.driver.find_element(
-                by=AppiumBy.XPATH,
-                value=share_xpath,
+            # Wait for the share icon to load (adjust the timeout and CSS selector as needed)
+            wait = WebDriverWait(self.driver, 6)
+            share_icon = wait.until(
+                EC.presence_of_element_located((AppiumBy.XPATH, share_xpath))
             )
+            # share_icon = self.driver.find_element(
+            #     by=AppiumBy.XPATH,
+            #     value=share_xpath,
+            # )
+            print("Congrats, share icon found! :)")
             share_icon.click()
             sleep(5)
             copy_icon = self.driver.find_element(
@@ -70,7 +79,13 @@ class runAndroidAutomation:
             clipboard = self.driver.get_clipboard_text()
             print("Clipboard Text: ", clipboard)
             return clipboard
-        except:
+        except TimeoutException:
+            print(
+                "TimeoutException at get_text_from_clipboard function. No share or copy icon found in 6 seconds!"
+            )
+            return None
+        except Exception as e:
+            print("Error while running get_text_from_clipboard function: ", e)
             return None
 
     def tearDown(self) -> None:
