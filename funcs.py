@@ -61,19 +61,12 @@ class runAndroidAutomation:
     def get_text_from_clipboard(self, share_xpath):
         try:
             # Wait for the share icon to load (adjust the timeout and CSS selector as needed)
-            wait = WebDriverWait(self.driver, 6)
-            share_icon = wait.until(
+            share_icon = WebDriverWait(self.driver, 6).until(
                 EC.presence_of_element_located((AppiumBy.XPATH, share_xpath))
             )
-            # share_icon = self.driver.find_element(
-            #     by=AppiumBy.XPATH,
-            #     value=share_xpath,
-            # )
-            print("Congrats, share icon found! :)")
             share_icon.click()
-            sleep(5)
-            copy_icon = self.driver.find_element(
-                by=AppiumBy.XPATH, value=copy_clipboard
+            copy_icon = WebDriverWait(self.driver, 6).until(
+                EC.presence_of_element_located((AppiumBy.XPATH, copy_clipboard))
             )
             copy_icon.click()
             clipboard = self.driver.get_clipboard_text()
@@ -98,16 +91,24 @@ class runAndroidAutomation:
                 "com.amazon.mShop.android.shopping"
             )
             if app_terminated:
-                sleep(5)
-                open_app = self.driver.find_element(
-                    by=AppiumBy.XPATH,
-                    value='//android.widget.TextView[@content-desc="Amazon Shopping"]',
+                open_app = WebDriverWait(self.driver, 6).until(
+                    EC.presence_of_element_located(
+                        (
+                            AppiumBy.XPATH,
+                            '//android.widget.TextView[@content-desc="Amazon Shopping"]',
+                        )
+                    )
                 )
                 open_app.click()
                 sleep(2)
                 return True
             else:
                 return False
+        except TimeoutException:
+            print(
+                "TimeoutException while opening the Amazon Shopping app. No Amazon Shopping app found in 6 seconds!"
+            )
+            return False
         except Exception as e:
             print("Exception while closing the app: ", e)
             return False
@@ -118,10 +119,13 @@ class runAndroidAutomation:
             app_reopened = self.reopen_app()
             if app_reopened:
                 opens = 0
-            sleep(2)
-            account_btn = self.driver.find_element(
-                by=AppiumBy.XPATH,
-                value='//android.widget.HorizontalScrollView[@resource-id="com.amazon.mShop.android.shopping:id/bottom_tab_nav_bar"]/android.widget.LinearLayout/androidx.appcompat.app.ActionBar.Tab[2]',
+            account_btn = WebDriverWait(self.driver, 6).until(
+                EC.presence_of_element_located(
+                    (
+                        AppiumBy.XPATH,
+                        '//android.widget.HorizontalScrollView[@resource-id="com.amazon.mShop.android.shopping:id/bottom_tab_nav_bar"]/android.widget.LinearLayout/androidx.appcompat.app.ActionBar.Tab[2]',
+                    )
+                )
             )
             account_btn.click()
             sleep(2)
@@ -300,24 +304,35 @@ class runAndroidAutomation:
 
             # Try to click on the camera icon to take a picture
             try:
-                take_pic = self.driver.find_element(
-                    by=AppiumBy.XPATH,
-                    value='//android.widget.ImageView[@resource-id="com.amazon.mShop.android.shopping:id/chrome_action_bar_camera_icon"]',
+                take_pic = WebDriverWait(self.driver, 6).until(
+                    EC.presence_of_element_located(
+                        (
+                            AppiumBy.XPATH,
+                            '//android.widget.ImageView[@resource-id="com.amazon.mShop.android.shopping:id/chrome_action_bar_camera_icon"]',
+                        )
+                    )
                 )
                 take_pic.click()
+            except TimeoutException:
+                print(
+                    "TimeoutException while taking pic. No Camera Icon found in 6 seconds!"
+                )
+                if self.reopen_app():
+                    opens = 0
             except Exception:
                 if self.reopen_app():
                     opens = 0
 
-            sleep(5)
-
             # Click on the barcode icon
-            barcode = self.driver.find_element(
-                by=AppiumBy.XPATH,
-                value='(//android.widget.ImageView[@resource-id="com.amazon.mShop.android.shopping:id/secondary_mode_image"])[3]',
+            barcode = WebDriverWait(self.driver, 6).until(
+                EC.presence_of_element_located(
+                    (
+                        AppiumBy.XPATH,
+                        '(//android.widget.ImageView[@resource-id="com.amazon.mShop.android.shopping:id/secondary_mode_image"])[3]',
+                    )
+                )
             )
             barcode.click()
-            sleep(5)
 
             max_attempts = 5
             attempts = 0
@@ -325,28 +340,38 @@ class runAndroidAutomation:
             while attempts < max_attempts:
                 try:
                     # Attempt to find and click the product element
-                    product = self.driver.find_element(
-                        by=AppiumBy.XPATH,
-                        value='//android.webkit.WebView[@text="Amazon.ca"]/android.view.View/android.view.View/android.view.View[3]',
+                    product = WebDriverWait(self.driver, 6).until(
+                        EC.presence_of_element_located(
+                            (
+                                AppiumBy.XPATH,
+                                '//android.webkit.WebView[@text="Amazon.ca"]/android.view.View/android.view.View/android.view.View[3]',
+                            )
+                        )
                     )
                     product.click()
                     break
-                except Exception as e:
+                except TimeoutException:
                     attempts += 1
                     try:
                         fetch_barcode(fnsku, random.choice((96, 135)))
-
-                        not_searchable = self.driver.find_element(
-                            by=AppiumBy.XPATH,
-                            value='//android.widget.Button[@text="Try Again"]',  # Adjusted example for try again button
+                        not_searchable = WebDriverWait(self.driver, 6).until(
+                            EC.presence_of_element_located(
+                                (
+                                    AppiumBy.XPATH,
+                                    '//android.widget.Button[@text="Try Again"]',
+                                )
+                            )
                         )
-                        sleep(2)
                         not_searchable.click()
                     except Exception as e:
                         try:
-                            no_results = self.driver.find_element(
-                                by=AppiumBy.XPATH,
-                                value='//android.widget.TextView[@text="Results Check each product page for other buying options."]',
+                            no_results = WebDriverWait(self.driver, 6).until(
+                                EC.presence_of_element_located(
+                                    (
+                                        AppiumBy.XPATH,
+                                        '//android.widget.TextView[@text="Results Check each product page for other buying options."]',
+                                    )
+                                )
                             )
                             result = {
                                 "status": "failed",
@@ -354,11 +379,15 @@ class runAndroidAutomation:
                                 "fnsku": fnsku,
                             }
                             return result
-                        except:
+                        except TimeoutException:
                             try:
-                                no_results = self.driver.find_element(
-                                    by=AppiumBy.XPATH,
-                                    value='//android.widget.TextView[@text="Results Check each product page for other buying options. Price and other details may vary based on product size and colour."]',
+                                no_results = WebDriverWait(self.driver, 6).until(
+                                    EC.presence_of_element_located(
+                                        (
+                                            AppiumBy.XPATH,
+                                            '//android.widget.TextView[@text="Results Check each product page for other buying options. Price and other details may vary based on product size and colour."]',
+                                        )
+                                    )
                                 )
                                 result = {
                                     "status": "failed",
@@ -369,24 +398,33 @@ class runAndroidAutomation:
                             except:
                                 print("Continue")
                                 continue
-            sleep(2)
 
             # Handle failure case if all attempts are exhausted
             if attempts == max_attempts:
                 try:
                     scn_product_type = '//android.webkit.WebView[@text="Amazon.ca"]/android.view.View/android.view.View/android.view.View[3]'
-                    product = self.driver.find_element(
-                        by=AppiumBy.XPATH, value=scn_product_type
+                    product = WebDriverWait(self.driver, 6).until(
+                        EC.presence_of_element_located(
+                            (
+                                AppiumBy.XPATH,
+                                scn_product_type,
+                            )
+                        )
                     )
                     product.click()
-                except Exception:
+                except TimeoutException:
                     try:
                         thr_product_type = '//android.webkit.WebView[@text="Amazon.ca"]/android.view.View/android.view.View/android.view.View[2]'
-                        product = self.driver.find_element(
-                            by=AppiumBy.XPATH, value=thr_product_type
+                        product = WebDriverWait(self.driver, 6).until(
+                            EC.presence_of_element_located(
+                                (
+                                    AppiumBy.XPATH,
+                                    thr_product_type,
+                                )
+                            )
                         )
                         product.click()
-                    except Exception:
+                    except TimeoutException:
                         print(
                             "Failed to find and click the product element after several attempts"
                         )
@@ -394,8 +432,6 @@ class runAndroidAutomation:
                             "status": "failed",
                             "msg": "Reached max attempts for trying! No product found",
                         }
-
-            sleep(2)
 
             # Get ASIN from page source
             clipboard_text = self.share_finder('//android.widget.Image[@text="Share"]')
