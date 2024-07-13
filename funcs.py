@@ -364,40 +364,42 @@ class runAndroidAutomation:
                         )
                         not_searchable.click()
                     except Exception as e:
-                        try:
-                            no_results = WebDriverWait(self.driver, 6).until(
-                                EC.presence_of_element_located(
-                                    (
-                                        AppiumBy.XPATH,
-                                        '//android.widget.TextView[@text="Results Check each product page for other buying options."]',
-                                    )
-                                )
-                            )
-                            result = {
-                                "status": "failed",
-                                "msg": f"No product found.",
-                                "fnsku": fnsku,
-                            }
-                            return result
-                        except TimeoutException:
-                            try:
-                                no_results = WebDriverWait(self.driver, 6).until(
-                                    EC.presence_of_element_located(
-                                        (
-                                            AppiumBy.XPATH,
-                                            '//android.widget.TextView[@text="Results Check each product page for other buying options. Price and other details may vary based on product size and colour."]',
-                                        )
-                                    )
-                                )
-                                result = {
-                                    "status": "failed",
-                                    "msg": f"No product found.",
-                                    "fnsku": fnsku,
-                                }
-                                return result
-                            except:
-                                print("Continue")
-                                continue
+                        print("Continue")
+                        continue
+                        # try:
+                        #     no_results = WebDriverWait(self.driver, 6).until(
+                        #         EC.presence_of_element_located(
+                        #             (
+                        #                 AppiumBy.XPATH,
+                        #                 '//android.widget.TextView[@text="Results Check each product page for other buying options."]',
+                        #             )
+                        #         )
+                        #     )
+                        #     result = {
+                        #         "status": "failed",
+                        #         "msg": f"No product found.",
+                        #         "fnsku": fnsku,
+                        #     }
+                        #     return result
+                        # except TimeoutException:
+                        #     try:
+                        #         no_results = WebDriverWait(self.driver, 6).until(
+                        #             EC.presence_of_element_located(
+                        #                 (
+                        #                     AppiumBy.XPATH,
+                        #                     '//android.widget.TextView[@text="Results Check each product page for other buying options. Price and other details may vary based on product size and colour."]',
+                        #                 )
+                        #             )
+                        #         )
+                        #         result = {
+                        #             "status": "failed",
+                        #             "msg": f"No product found.",
+                        #             "fnsku": fnsku,
+                        #         }
+                        #         return result
+                        #     except:
+                        #         print("Continue")
+                        #         continue
 
             # Handle failure case if all attempts are exhausted
             if attempts == max_attempts:
