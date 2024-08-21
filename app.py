@@ -571,7 +571,7 @@ def product_scraper():
     # Check if the code is UPC (12 digits)
     elif product_code.isdigit():
         results = upc_to_asin_logic(product_code)
-        if results[product_code]:
+        if product_code in results and results[product_code]:
             asin = results[product_code][0]
         else:
             asin = None
