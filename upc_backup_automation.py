@@ -117,8 +117,8 @@ def get_product_info_selenium(upc_code):
             print(f"Error during cleanup: {str(e)}")
 
 
-# Example usage:
-upc_code = "0056500372994"
-upc_code = "056500370389"
-product_info = get_product_info_selenium(upc_code)
-print(product_info)
+# # Example usage:
+# upc_code = "0056500372994"
+# upc_code = "056500370389"
+# product_info = get_product_info_selenium(upc_code)
+# print(product_info)
