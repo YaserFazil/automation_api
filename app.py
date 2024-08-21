@@ -326,8 +326,7 @@ def upc_to_asin_logic(code):
     payload = json.dumps({"marketplace": "CA", "ids": [code]})
     headers = {
         "Content-Type": "application/json",
-        # "Authorization": f'Bearer {os.getenv("ROCKETSOURCE_API_BEARER_TOKEN")}',
-        "Authorization": f"Bearer 3498|j6TA6NcO6xskcTkjMcqLN7NMRiWPZUmnda3B53359fbec614",
+        "Authorization": f'Bearer {os.getenv("ROCKETSOURCE_API_BEARER_TOKEN")}',
     }
 
     response = requests.request("POST", url, headers=headers, data=payload)
