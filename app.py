@@ -15,6 +15,7 @@ import requests
 import json
 import datetime
 from chatgpt import *
+from upc_backup_automation import *
 
 load_dotenv()
 
@@ -428,78 +429,69 @@ def get_price_history(asin):
     return {"timestamp": human_time, "price": last_available_price / 100}
 
 
-def product_scraperapi(asins):
+def product_scraperapi(asin):
     scraperapi_api_key = os.getenv("SCRAPERAPI_API_KEY")
-    results = []
-    for asin in asins:
-        url = f"https://api.scraperapi.com/structured/amazon/product?api_key={scraperapi_api_key}&asin={asin}&country=amazon.ca&tld=ca&output=json"
+    results = None
+    url = f"https://api.scraperapi.com/structured/amazon/product?api_key={scraperapi_api_key}&asin={asin}&country=amazon.ca&tld=ca&output=json"
 
-        payload = {}
-        headers = {}
+    payload = {}
+    headers = {}
 
-        response = requests.request("GET", url, headers=headers, data=payload)
+    response = requests.request("GET", url, headers=headers, data=payload)
 
-        response = json.loads(response.text)
-        if (
-            "full_description" in response
-            and "pricing" in response
-            and "name" in response
-        ):
-            results.append(
-                {
-                    "asin": asin,
-                    "title": response["name"],
-                    "description": response["full_description"],
-                    "price": response["pricing"],
-                    "image": response["images"][0],
-                    "status": "success",
-                }
-            )
-        elif (
-            "full_description" not in response
-            and "pricing" in response
-            and "name" in response
-        ):
-            results.append(
-                {
-                    "asin": asin,
-                    "title": response["name"],
-                    "price": response["pricing"],
-                    "image": response["images"][0],
-                    "status": "success",
-                }
-            )
-        elif (
-            "full_description" not in response
-            and "pricing" not in response
-            and "name" in response
-        ):
-            last_price = get_price_history(asin)
-            results.append(
-                {
-                    "asin": asin,
-                    "title": response["name"],
-                    "price": f"${last_price['price']}",
-                    "image": response["images"][0],
-                    "status": "success",
-                }
-            )
-        elif (
-            "full_description" in response
-            and "pricing" not in response
-            and "name" in response
-        ):
-            last_price = get_price_history(asin)
-            results.append(
-                {
-                    "asin": asin,
-                    "title": response["name"],
-                    "description": response["full_description"],
-                    "price": f"${last_price['price']}",
-                    "image": response["images"][0],
-                    "status": "success",
-                }
-            )
+    response = json.loads(response.text)
+    if "full_description" in response and "pricing" in response and "name" in response:
+        results = {
+            "asin": asin,
+            "title": response["name"],
+            "description": response["full_description"],
+            "price": response["pricing"],
+            "image": response["images"][0],
+            "status": "success",
+        }
+
+    elif (
+        "full_description" not in response
+        and "pricing" in response
+        and "name" in response
+    ):
+        results = {
+            "asin": asin,
+            "title": response["name"],
+            "price": response["pricing"],
+            "image": response["images"][0],
+            "status": "success",
+        }
+
+    elif (
+        "full_description" not in response
+        and "pricing" not in response
+        and "name" in response
+    ):
+        last_price = get_price_history(asin)
+        results = {
+            "asin": asin,
+            "title": response["name"],
+            "price": f"${last_price['price']}",
+            "image": response["images"][0],
+            "status": "success",
+        }
+
+    elif (
+        "full_description" in response
+        and "pricing" not in response
+        and "name" in response
+    ):
+        last_price = get_price_history(asin)
+        results = {
+            "asin": asin,
+            "title": response["name"],
+            "description": response["full_description"],
+            "price": f"${last_price['price']}",
+            "image": response["images"][0],
+            "status": "success",
+        }
+
     return results
 
 
@@ -559,42 +551,39 @@ def update_memento_entry(
 @app.route("/product-scraper", methods=["GET"])
 @check_api
 def product_scraper():
-    products_codes = request.args.getlist("product_code")
+    product_code = request.args.get("product_code")
     entry_id = request.args.getlist("entryId")
     print("Here is the entry id: ", entry_id)
-    if not products_codes:
-        return jsonify(
-            {"status": "failed", "msg": "At least one Product Code is required!"}
-        )
-    products_asins = []
-    is_fnsku = False
-    for product_code in products_codes:
-        asin = None
-        # Check if the code is ASIN
-        if product_code.startswith("B0") and len(product_code) == 10:
-            asin = product_code
+    if not product_code:
+        return jsonify({"status": "failed", "msg": "Product Code is required!"})
 
-        # Check if the code is FNSKU
-        elif product_code.startswith("X0") and len(product_code) == 10:
-            results = fnsku_to_asin_logic([product_code])
-            if results[0]["status"] == "success":
-                asin = results[0]["asin"]
-            is_fnsku = True
+    asin = None
+    # Check if the code is ASIN
+    if product_code.startswith("B0") and len(product_code) == 10:
+        asin = product_code
 
-        # Check if the code is UPC (12 digits)
-        elif product_code.isdigit():
-            results = upc_to_asin_logic(product_code)
-            if results[product_code]:
-                asin = results[product_code][0]
+    # Check if the code is FNSKU
+    elif product_code.startswith("X0") and len(product_code) == 10:
+        results = fnsku_to_asin_logic([product_code])
+        if results[0]["status"] == "success":
+            asin = results[0]["asin"]
 
-        products_asins.append(asin)
+    # Check if the code is UPC (12 digits)
+    elif product_code.isdigit():
+        results = upc_to_asin_logic(product_code)
+        if results[product_code]:
+            asin = results[product_code][0]
+        else:
+            asin = None
 
-    results = product_scraperapi(products_asins)
+    if asin:
+        results = product_scraperapi(asin)
+    else:
+        results = get_product_info_selenium(product_code)
     memento_lib_id = request.args.get("memento_lib_id")
     memento_token = request.args.get("mementoToken")
     memento_entryid = entry_id[0]
     if results:
-        results = results[0]
         if "title" in results and "description" in results:
             description = rewrite_product_description(
                 f"{results['title']} {results['description']}"
@@ -618,6 +607,10 @@ def product_scraper():
                 results["price"],
                 results["image"],
                 description,
+            )
+        if "shopping_results" in results:
+            insert_products_mementodb(
+                memento_lib_id, memento_token, memento_entryid, results
             )
     else:
         updated_entry = update_memento_entry(
