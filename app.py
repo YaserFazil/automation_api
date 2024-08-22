@@ -279,6 +279,25 @@ def hello_world():
     return "Hello, World!"
 
 
+def fnsku_to_asin_logic_us_amz(product_code, entry_id, memento_lib_id, memento_token):
+    with lock:
+        # Define the endpoint
+        url = "https://e664-2607-fea8-edd-2000-d482-7a5a-9b71-bc19.ngrok-free.app/product-scraper"
+
+        # Define the parameters for the GET request
+        params = {
+            "product_code": product_code,
+            "entryId": entry_id,
+            "memento_lib_id": memento_lib_id,
+            "mementoToken": memento_token,
+        }
+
+        # Make the GET request with the parameters
+        response = requests.get(url, params=params)
+
+        return response.status_code
+
+
 def fnsku_to_asin_logic(fnskus):
     with lock:
         results = []
@@ -552,10 +571,15 @@ def update_memento_entry(
 def product_scraper():
     product_code = request.args.get("product_code")
     entry_id = request.args.getlist("entryId")
+    memento_lib_id = request.args.get("memento_lib_id")
+    memento_token = request.args.get("mementoToken")
+    memento_entryid = entry_id[0]
     print("Here is the entry id: ", entry_id)
     if not product_code:
         return jsonify({"status": "failed", "msg": "Product Code is required!"})
-
+    results = []
+    usamazon = False
+    usamazon_status_code = 0
     asin = None
     # Check if the code is ASIN
     if product_code.startswith("B0") and len(product_code) == 10:
@@ -566,6 +590,11 @@ def product_scraper():
         results = fnsku_to_asin_logic([product_code])
         if results[0]["status"] == "success":
             asin = results[0]["asin"]
+        else:
+            usamazon_status_code = fnsku_to_asin_logic_us_amz(
+                [product_code], memento_entryid, memento_lib_id, memento_token
+            )
+            usamazon = True
 
     # Check if the code is UPC (12 digits)
     elif product_code.isdigit():
@@ -575,14 +604,12 @@ def product_scraper():
         else:
             asin = None
 
-    if asin:
+    if asin and usamazon == False:
         results = product_scraperapi(asin)
-    else:
+    elif asin is None and usamazon == False:
         results = get_product_info_selenium(product_code)
-    memento_lib_id = request.args.get("memento_lib_id")
-    memento_token = request.args.get("mementoToken")
-    memento_entryid = entry_id[0]
-    if results:
+
+    if results != [] and usamazon == False:
         if "title" in results and "description" in results:
             description = rewrite_product_description(
                 f"{results['title']} {results['description']}"
@@ -611,7 +638,7 @@ def product_scraper():
             insert_products_mementodb(
                 memento_lib_id, memento_token, memento_entryid, results
             )
-    else:
+    elif results == [] and usamazon_status_code != 200:
         updated_entry = update_memento_entry(
             memento_lib_id, memento_token, memento_entryid
         )
