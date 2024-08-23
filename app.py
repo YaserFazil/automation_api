@@ -307,7 +307,7 @@ def fnsku_to_asin_logic(fnskus):
                 fetch_barcode(fnsku)
                 automation = runAndroidAutomation()
                 automation.setUp()
-                max_attempts = 2
+                max_attempts = 1
                 attempts = 0
                 asin = {"status": "None", "msg": "Initial attempt"}
                 while attempts < max_attempts and asin["status"] != "success":

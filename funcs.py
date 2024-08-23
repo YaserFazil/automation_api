@@ -334,7 +334,7 @@ class runAndroidAutomation:
             )
             barcode.click()
 
-            max_attempts = 5
+            max_attempts = 1
             attempts = 0
 
             while attempts < max_attempts:
