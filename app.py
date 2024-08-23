@@ -640,9 +640,8 @@ def product_scraper():
                 memento_lib_id, memento_token, memento_entryid, results
             )
     elif results == [] and usamazon_status_code != 200:
-        updated_entry = update_memento_entry(
-            memento_lib_id, memento_token, memento_entryid
-        )
+        print("Hello it's failed usamazon automation request")
+        update_memento_entry(memento_lib_id, memento_token, memento_entryid)
     return (
         {"message": "You have access to this endpoint", "items": results},
         200,
