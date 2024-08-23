@@ -594,6 +594,7 @@ def product_scraper():
             usamazon_status_code = fnsku_to_asin_logic_us_amz(
                 [product_code], memento_entryid, memento_lib_id, memento_token
             )
+            print("Us AMZ Status Code: ", usamazon_status_code)
             usamazon = True
 
     # Check if the code is UPC (12 digits)
