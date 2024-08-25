@@ -636,8 +636,13 @@ def product_scraper():
                 description,
             )
         if "shopping_results" in results:
+            scrape_status = (
+                "Scrape successful, msrp pending selection, alternate data available"
+            )
+            if results["price"] is not None:
+                scrape_status = "Scrape Successful, Alternate data available"
             insert_products_mementodb(
-                memento_lib_id, memento_token, memento_entryid, results
+                memento_lib_id, memento_token, memento_entryid, results, scrape_status
             )
     elif results == [] and usamazon_status_code != 200:
         print("Hello it's failed usamazon automation request")
@@ -674,22 +679,26 @@ def search_products():
     gshopping_search_url = f"https://api.scraperapi.com/structured/google/shopping?api_key={scraperapi_api_key}&country=ca&query={query}"
     response = requests.request("GET", gshopping_search_url)
     response = json.loads(response.text)
-    insert_products_mementodb(memento_lib_id, memento_token, memento_entryid, response)
+    scrape_status = "Scrape Failed"
+    if len(response["shopping_results"]) > 0:
+        scrape_status = "Manual Entry Data Scraped"
+    insert_products_mementodb(
+        memento_lib_id, memento_token, memento_entryid, response, scrape_status
+    )
     return response
 
 
 from products_payload import *
 
 
-def insert_products_mementodb(memento_lib_id, memento_token, memento_entryid, data):
+def insert_products_mementodb(
+    memento_lib_id, memento_token, memento_entryid, data, scrape_status="Scrape Failed"
+):
     try:
         url = f"https://api.mementodatabase.com/v1/libraries/{memento_lib_id}/entries/{memento_entryid}?token={memento_token}"
-        scrape_status = "Scrape Failed"
         images = []
         msrps = []
         if len(data["shopping_results"]) > 0:
-            # Determine scrape status based on the shopping_results
-            scrape_status = "Manual Entry Data Scraped"
             for result in data["shopping_results"]:
                 images.append(result["thumbnail"])
                 msrps.append(result["extracted_price"])
