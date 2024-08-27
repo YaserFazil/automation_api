@@ -667,8 +667,8 @@ def search_products():
             {"status": "failed", "msg": "title or image is required parameter!"}
         )
     if image is not None:
-        print("Image: ", image + "&lib=" + image_lib)
-        query = glens_results(image + "&lib=" + image_lib)
+        print("Image: ", image)
+        query = glens_results(image)
         print("Title from glens: ", query)
         sleep(5)
     memento_lib_id = request.args.get("memento_lib_id")
