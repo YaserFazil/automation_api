@@ -668,7 +668,7 @@ def search_products():
         )
     if image is not None:
         print("Image: ", image)
-        query = glens_results(image)
+        query = glens_results(image[0])
         print("Title from glens: ", query)
         sleep(5)
     memento_lib_id = request.args.get("memento_lib_id")
