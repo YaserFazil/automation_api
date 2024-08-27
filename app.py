@@ -667,6 +667,7 @@ def search_products():
             {"status": "failed", "msg": "title or image is required parameter!"}
         )
     if image is not None:
+        image = image.strip("[]").split(", ")[0]
         print("Image: ", image[0], type(image))
         query = glens_results(image[0])
         print("Title from glens: ", query)
