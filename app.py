@@ -1,5 +1,5 @@
 import io
-from flask import Flask, request, jsonify, make_response
+from flask import Flask, request, jsonify
 import boto3
 from botocore.exceptions import NoCredentialsError
 import os
@@ -650,8 +650,8 @@ def product_scraper():
     elif results == [] and usamazon_status_code != 200:
         print("Hello it's failed usamazon automation request")
         update_memento_entry(memento_lib_id, memento_token, memento_entryid)
-    return make_response(
-        {"message": "You have access to this endpoint", "items": results},
+    return (
+        jsonify({"message": "You have access to this endpoint", "items": results}),
         200,
     )
 
