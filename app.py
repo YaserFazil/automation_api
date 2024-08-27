@@ -667,9 +667,20 @@ def search_products():
             {"status": "failed", "msg": "title or image is required parameter!"}
         )
     if image is not None:
+        memento_lib_id = request.args.get("memento_lib_id")
+        memento_token = request.args.get("mementoToken")
+        memento_entryid = request.args.get("entryId")
         image = image.strip("[]").split(", ")[0]
         print("Image: ", image, type(image))
         query = glens_results(image)
+        description = rewrite_product_description(query)
+        update_memento_entry (
+            memento_lib_id=memento_lib_id,
+            memento_token=memento_token,
+            memento_entryid=memento_entryid,
+            entry_title=query,
+            entry_description=description,
+        )
         print("Title from glens: ", query)
         sleep(5)
     memento_lib_id = request.args.get("memento_lib_id")
