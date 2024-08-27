@@ -562,7 +562,7 @@ def update_memento_entry(
         print(response.text)
         return True
     except Exception as e:
-        print("Error updating memento entry:", e)
+        print("Error updating memento entry 1:", e)
         return False
 
 
