@@ -710,7 +710,7 @@ def search_products():
     insert_products_mementodb(
         memento_lib_id, memento_token, memento_entryid, search_data, scrape_status
     )
-    return response
+    return jsonify({"status": "success"}), 200
 
 
 from products_payload import *
