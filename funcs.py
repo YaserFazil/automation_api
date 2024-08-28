@@ -610,11 +610,12 @@ def get_asin_from_text(text):
         print("trying full amazon url")
         try:
             # If no short URL found or URL expansion didn't work, try the full Amazon URL pattern
-            amazon_url_pattern = r"https://www\.amazon\.[a-z]+/dp/([A-Z0-9]+)"
+            amazon_url_pattern = r"https://www\.amazon\.ca+/dp/([A-Z0-9]+)"
             amazon_url_match = re.search(amazon_url_pattern, text)
 
             if amazon_url_match:
                 full_url = amazon_url_match.group(1)
+                print("Here is the full url: ", full_url)
                 asin = extract_asin_from_url(full_url)
                 if asin:
                     print("ASIN from full URL: ", asin)
