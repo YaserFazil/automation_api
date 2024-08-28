@@ -344,7 +344,7 @@ class runAndroidAutomation:
                         EC.presence_of_element_located(
                             (
                                 AppiumBy.XPATH,
-                                '//android.webkit.WebView[@text="Amazon.ca"]/android.view.View/android.view.View/android.view.View[2]',
+                                '//android.view.View[@resource-id="search"]/android.view.View[3]',
                             )
                         )
                     )
@@ -394,7 +394,7 @@ class runAndroidAutomation:
                         product.click()
                     except TimeoutException:
                         try:
-                            fourt_product_type = '//android.view.View[@resource-id="search"]/android.view.View[3]'
+                            fourt_product_type = '//android.webkit.WebView[@text="Amazon.ca"]/android.view.View/android.view.View/android.view.View[2]'
                             product = WebDriverWait(self.driver, 6).until(
                                 EC.presence_of_element_located(
                                     (
