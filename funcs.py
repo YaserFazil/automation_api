@@ -173,6 +173,11 @@ class runAndroidAutomation:
                         )
                     )
                     product.click()
+                    clipboard_text = self.share_finder(
+                        '//android.widget.Image[@text="Share"]'
+                    )
+                    if clipboard_text is None:
+                        raise TimeoutException
                     break
                 except TimeoutException:
                     attempts += 1
