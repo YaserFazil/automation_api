@@ -393,13 +393,25 @@ class runAndroidAutomation:
                         )
                         product.click()
                     except TimeoutException:
-                        print(
-                            "Failed to find and click the product element after several attempts"
-                        )
-                        return {
-                            "status": "failed",
-                            "msg": "Reached max attempts for trying! No product found",
-                        }
+                        try:
+                            fourt_product_type = '//android.view.View[@resource-id="search"]/android.view.View[3]'
+                            product = WebDriverWait(self.driver, 6).until(
+                                EC.presence_of_element_located(
+                                    (
+                                        AppiumBy.XPATH,
+                                        fourt_product_type,
+                                    )
+                                )
+                            )
+                            product.click()
+                        except TimeoutException:
+                            print(
+                                "Failed to find and click the product element after several attempts"
+                            )
+                            return {
+                                "status": "failed",
+                                "msg": "Reached max attempts for trying! No product found",
+                            }
 
             # Get ASIN from page source
             clipboard_text = self.share_finder('//android.widget.Image[@text="Share"]')
