@@ -335,7 +335,6 @@ def fnsku_to_asin_logic(fnskus):
                 results.append(
                     {"status": "failed", "msg": f"Error: {e}", "fnsku": fnsku}
                 )
-
         return results
 
 
@@ -591,6 +590,7 @@ def product_scraper():
     # Check if the code is FNSKU
     elif product_code.startswith("X0") and len(product_code) == 10:
         results = fnsku_to_asin_logic([product_code])
+        print("Here is result you wanted: ", results)
         if results[0]["status"] == "success":
             asin = results[0]["asin"]
         else:
