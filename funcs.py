@@ -590,7 +590,8 @@ def get_asin_from_text(text):
     short_url_match = re.search(short_url_pattern, text)
 
     print("Shared URL of the product: ", text)
-
+    # Initialize expanded_url to None
+    expanded_url = None
     if short_url_match:
         short_url = short_url_match.group(0)
         expanded_url = expand_url(short_url)
