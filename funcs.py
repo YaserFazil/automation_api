@@ -177,16 +177,15 @@ class runAndroidAutomation:
                 except TimeoutException:
                     attempts += 1
                     try:
-                        fetch_barcode(fnsku, random.choice((96, 135)))
-                        not_searchable = WebDriverWait(self.driver, 6).until(
+                        another_product = WebDriverWait(self.driver, 6).until(
                             EC.presence_of_element_located(
                                 (
                                     AppiumBy.XPATH,
-                                    '//android.widget.Button[@text="Try Again"]',
+                                    '//android.view.View[@resource-id="search"]/android.view.View[4]',
                                 )
                             )
                         )
-                        not_searchable.click()
+                        another_product.click()
                     except Exception as e:
                         print("Continue")
                         continue
