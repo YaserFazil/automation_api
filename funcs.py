@@ -177,11 +177,18 @@ class runAndroidAutomation:
                 except TimeoutException:
                     attempts += 1
                     try:
+                        xpath_product = '//android.view.View[@resource-id="search"]/android.view.View[4]'
+                        # Scroll until the element is found using UiScrollable
+                        self.driver.find_element(
+                            AppiumBy.ANDROID_UIAUTOMATOR,
+                            "new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView("
+                            'new UiSelector().xpath("{}"))'.format(xpath_product),
+                        )
                         another_product = WebDriverWait(self.driver, 6).until(
                             EC.presence_of_element_located(
                                 (
                                     AppiumBy.XPATH,
-                                    '//android.view.View[@resource-id="search"]/android.view.View[4]',
+                                    xpath_product,
                                 )
                             )
                         )
