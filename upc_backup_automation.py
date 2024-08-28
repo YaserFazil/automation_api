@@ -96,18 +96,46 @@ def get_product_info_selenium(upc_code):
         # gshopping_search_url = f"https://api.scraperapi.com/structured/google/shopping?api_key={scraperapi_api_key}&country=ca&query={product_title}"
         # response = requests.get(gshopping_search_url)
         # response_data = json.loads(response.text)
-        gshopping_search_url = "https://google.serper.dev/shopping"
-
-        payload = json.dumps({"q": product_title, "location": "Canada", "gl": "ca"})
         headers = {
             "X-API-KEY": os.getenv("SERPER_DEV_API_KEY"),
             "Content-Type": "application/json",
         }
+        # Get images for products from google
+        google_images_search_url = "https://google.serper.dev/images"
+
+        imgs_payload = json.dumps(
+            {"q": product_title, "location": "Canada", "gl": "ca", "num": 20}
+        )
+
+        imgs_response = requests.request(
+            "POST", google_images_search_url, headers=headers, data=imgs_payload
+        )
+
+        first_imgs_response = json.loads(imgs_response.text)
+
+        # Get products from google
+        gshopping_search_url = "https://google.serper.dev/shopping"
+
+        payload = json.dumps({"q": product_title, "location": "Canada", "gl": "ca"})
 
         response = requests.request(
             "POST", gshopping_search_url, headers=headers, data=payload
         )
         first_response = json.loads(response.text)
+        main_results = []
+        if len(first_response["shopping"]) > 0:
+            # Combine corresponding dictionaries from first_imgs_response and first_response, prioritizing imageUrl from first_imgs_response
+            for dict1, dict2 in zip(
+                first_imgs_response["images"], first_response["shopping"]
+            ):
+                combined_dict = {
+                    **dict2,
+                    **dict1,
+                }  # Combine dictionaries, with dict1 overwriting dict2 where keys overlap
+                main_results.append(
+                    combined_dict
+                )  # Add the combined dict to the main array
+            first_response["shopping"] = main_results
         product_info["shopping_results"] = first_response.get("shopping", [])[:10]
 
         return product_info
