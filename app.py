@@ -703,7 +703,7 @@ def search_products():
         "POST", google_images_search_url, headers=headers, data=imgs_payload
     )
 
-    first_imgs_response = json.loads(response.text)
+    first_imgs_response = json.loads(imgs_response.text)
 
     # Get products from google
     gshopping_search_url = "https://google.serper.dev/shopping"
