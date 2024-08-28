@@ -684,13 +684,27 @@ def search_products():
     memento_lib_id = request.args.get("memento_lib_id")
     memento_token = request.args.get("mementoToken")
     memento_entryid = request.args.get("entryId")
-    scraperapi_api_key = os.getenv("SCRAPERAPI_API_KEY")
-    amazon_search_url = f"https://api.scraperapi.com/structured/amazon/search?api_key={scraperapi_api_key}&country=ca&tld=ca&output=json&query={query}"
-    gshopping_search_url = f"https://api.scraperapi.com/structured/google/shopping?api_key={scraperapi_api_key}&country=ca&query={query}"
-    response = requests.request("GET", gshopping_search_url)
-    response = json.loads(response.text)
+    # scraperapi_api_key = os.getenv("SCRAPERAPI_API_KEY")
+    # amazon_search_url = f"https://api.scraperapi.com/structured/amazon/search?api_key={scraperapi_api_key}&country=ca&tld=ca&output=json&query={query}"
+    # gshopping_search_url = f"https://api.scraperapi.com/structured/google/shopping?api_key={scraperapi_api_key}&country=ca&query={query}"
+    # response = requests.request("GET", gshopping_search_url)
+    # response = json.loads(response.text)
+
+    gshopping_search_url = "https://google.serper.dev/shopping"
+
+    payload = json.dumps({"q": query, "location": "Canada", "gl": "ca"})
+    headers = {
+        "X-API-KEY": os.getenv("SERPER_DEV_API_KEY"),
+        "Content-Type": "application/json",
+    }
+
+    response = requests.request(
+        "POST", gshopping_search_url, headers=headers, data=payload
+    )
+    first_response = json.loads(response.text)
     scrape_status = "Scrape Failed"
-    if len(response["shopping_results"]) > 0:
+    if len(first_response["shopping"]) > 0:
+        response["shopping_results"] = first_response["shopping"]
         scrape_status = "Manual Entry Data Scraped"
     insert_products_mementodb(
         memento_lib_id, memento_token, memento_entryid, response, scrape_status
@@ -721,8 +735,8 @@ def insert_products_mementodb(
 
         if len(data["shopping_results"]) > 0:
             for result in data["shopping_results"]:
-                images.append(result["thumbnail"])
-                msrps.append(result["extracted_price"])
+                images.append(result["imageUrl"])
+                msrps.append(result["price"])
 
             images_list = create_entries_products_for_images(images)
             msrps_list = create_entries_products_for_msrps(msrps)

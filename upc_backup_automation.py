@@ -92,14 +92,23 @@ def get_product_info_selenium(upc_code):
             "price": product_price,
         }
 
-        # Optionally, you can continue with the API call for further information
-        scraperapi_api_key = os.getenv("SCRAPERAPI_API_KEY")
-        gshopping_search_url = f"https://api.scraperapi.com/structured/google/shopping?api_key={scraperapi_api_key}&country=ca&query={product_title}"
-        response = requests.get(gshopping_search_url)
-        response_data = json.loads(response.text)
-        product_info["shopping_results"] = response_data.get("shopping_results", [])[
-            :10
-        ]
+        # scraperapi_api_key = os.getenv("SCRAPERAPI_API_KEY")
+        # gshopping_search_url = f"https://api.scraperapi.com/structured/google/shopping?api_key={scraperapi_api_key}&country=ca&query={product_title}"
+        # response = requests.get(gshopping_search_url)
+        # response_data = json.loads(response.text)
+        gshopping_search_url = "https://google.serper.dev/shopping"
+
+        payload = json.dumps({"q": product_title, "location": "Canada", "gl": "ca"})
+        headers = {
+            "X-API-KEY": os.getenv("SERPER_DEV_API_KEY"),
+            "Content-Type": "application/json",
+        }
+
+        response = requests.request(
+            "POST", gshopping_search_url, headers=headers, data=payload
+        )
+        first_response = json.loads(response.text)
+        product_info["shopping_results"] = first_response.get("shopping", [])[:10]
 
         return product_info
 
