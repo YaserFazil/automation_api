@@ -585,36 +585,38 @@ def extract_asin_from_url(url):
 
 
 def get_asin_from_text(text):
-    # First, try to find a short URL in the text
-    short_url_pattern = r"https://a\.co/d/[A-Za-z0-9]+"
-    short_url_match = re.search(short_url_pattern, text)
+    try:
+        # First, try to find a short URL in the text
+        short_url_pattern = r"https://a\.co/d/[A-Za-z0-9]+"
+        short_url_match = re.search(short_url_pattern, text)
 
-    print("Shared URL of the product: ", text)
-    # Initialize expanded_url to None
-    expanded_url = None
-    if short_url_match:
-        short_url = short_url_match.group(0)
-        expanded_url = expand_url(short_url)
-        if expanded_url:
-            asin = extract_asin_from_url(expanded_url)
-            if asin:
-                print("ASIN from short URL: ", asin)
-                return asin
-        # If expanding the short URL doesn't work, we still try the next pattern
+        print("Shared URL of the product: ", text)
+        # Initialize expanded_url to None
+        expanded_url = None
+        if short_url_match:
+            short_url = short_url_match.group(0)
+            expanded_url = expand_url(short_url)
+            if expanded_url:
+                asin = extract_asin_from_url(expanded_url)
+                if asin:
+                    print("ASIN from short URL: ", asin)
+                    return asin
+            # If expanding the short URL doesn't work, we still try the next pattern
+    except:
+        try:
+            # If no short URL found or URL expansion didn't work, try the full Amazon URL pattern
+            amazon_url_pattern = r"https://www\.amazon\.[a-z]+/dp/([A-Z0-9]+)"
+            amazon_url_match = re.search(amazon_url_pattern, text)
 
-    # If no short URL found or URL expansion didn't work, try the full Amazon URL pattern
-    amazon_url_pattern = r"https://www\.amazon\.[a-z]+/dp/([A-Z0-9]+)"
-    amazon_url_match = re.search(amazon_url_pattern, text)
-
-    if amazon_url_match:
-        asin = amazon_url_match.group(1)  # Extract the ASIN from the full URL
-        asin = extract_asin_from_url(expanded_url)
-        if asin:
-            print("ASIN from full URL: ", asin)
-            return asin
-
-    # If neither pattern matches, return None
-    return None
+            if amazon_url_match:
+                asin = amazon_url_match.group(1)  # Extract the ASIN from the full URL
+                asin = extract_asin_from_url(expanded_url)
+                if asin:
+                    print("ASIN from full URL: ", asin)
+                    return asin
+        except:
+            # If neither pattern matches, return None
+            return None
 
 
 from serpapi import GoogleSearch
