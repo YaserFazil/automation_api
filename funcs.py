@@ -168,7 +168,7 @@ class runAndroidAutomation:
                         EC.presence_of_element_located(
                             (
                                 AppiumBy.XPATH,
-                                '//android.view.View[@resource-id="search"]/android.view.View[3]',
+                                '//android.view.View[@resource-id="search"]/android.view.View[4]',
                             )
                         )
                     )
