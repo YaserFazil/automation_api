@@ -700,7 +700,7 @@ def search_products():
     imgs_payload = json.dumps({"q": query, "location": "Canada", "gl": "ca", "num": 20})
 
     imgs_response = requests.request(
-        "POST", google_images_search_url, headers=headers, data=payload
+        "POST", google_images_search_url, headers=headers, data=imgs_payload
     )
 
     first_imgs_response = json.loads(response.text)
