@@ -703,11 +703,12 @@ def search_products():
     )
     first_response = json.loads(response.text)
     scrape_status = "Scrape Failed"
+    search_data = {}
     if len(first_response["shopping"]) > 0:
-        response["shopping_results"] = first_response["shopping"]
+        search_data["shopping_results"] = first_response["shopping"]
         scrape_status = "Manual Entry Data Scraped"
     insert_products_mementodb(
-        memento_lib_id, memento_token, memento_entryid, response, scrape_status
+        memento_lib_id, memento_token, memento_entryid, search_data, scrape_status
     )
     return response
 
