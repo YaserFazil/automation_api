@@ -690,13 +690,25 @@ def search_products():
     # response = requests.request("GET", gshopping_search_url)
     # response = json.loads(response.text)
 
-    gshopping_search_url = "https://google.serper.dev/shopping"
-
-    payload = json.dumps({"q": query, "location": "Canada", "gl": "ca"})
     headers = {
         "X-API-KEY": os.getenv("SERPER_DEV_API_KEY"),
         "Content-Type": "application/json",
     }
+    # Get images for products from google
+    google_images_search_url = "https://google.serper.dev/images"
+
+    imgs_payload = json.dumps({"q": query, "location": "Canada", "gl": "ca", "num": 20})
+
+    imgs_response = requests.request(
+        "POST", google_images_search_url, headers=headers, data=payload
+    )
+
+    first_imgs_response = json.loads(response.text)
+
+    # Get products from google
+    gshopping_search_url = "https://google.serper.dev/shopping"
+
+    payload = json.dumps({"q": query, "location": "Canada", "gl": "ca"})
 
     response = requests.request(
         "POST", gshopping_search_url, headers=headers, data=payload
@@ -704,8 +716,20 @@ def search_products():
     first_response = json.loads(response.text)
     scrape_status = "Scrape Failed"
     search_data = {}
+    main_results = []
     if len(first_response["shopping"]) > 0:
-        search_data["shopping_results"] = first_response["shopping"]
+        # Combine corresponding dictionaries from first_imgs_response and first_response, prioritizing imageUrl from first_imgs_response
+        for dict1, dict2 in zip(
+            first_imgs_response["images"], first_response["shopping"]
+        ):
+            combined_dict = {
+                **dict2,
+                **dict1,
+            }  # Combine dictionaries, with dict1 overwriting dict2 where keys overlap
+            main_results.append(
+                combined_dict
+            )  # Add the combined dict to the main array
+        search_data["shopping_results"] = main_results
         scrape_status = "Manual Entry Data Scraped"
     insert_products_mementodb(
         memento_lib_id, memento_token, memento_entryid, search_data, scrape_status
