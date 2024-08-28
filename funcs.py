@@ -599,6 +599,12 @@ def get_asin_from_text(text):
                 if asin:
                     print("ASIN from short URL: ", asin)
                     return asin
+                else:
+                    raise Exception
+            else:
+                raise Exception
+        else:
+            raise Exception
             # If expanding the short URL doesn't work, we still try the next pattern
     except Exception as e:
         print("trying full amazon url")
@@ -609,7 +615,7 @@ def get_asin_from_text(text):
 
             if amazon_url_match:
                 full_url = amazon_url_match.group(1)
-                asin = extract_asin_from_url(full_url)
+                asin = extract_asin_from_url(full_url.split("?")[0])
                 if asin:
                     print("ASIN from full URL: ", asin)
                     return asin
