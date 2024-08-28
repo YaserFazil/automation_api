@@ -615,7 +615,7 @@ def get_asin_from_text(text):
 
             if amazon_url_match:
                 full_url = amazon_url_match.group(1)
-                asin = extract_asin_from_url(full_url.split("?")[0])
+                asin = extract_asin_from_url(full_url)
                 if asin:
                     print("ASIN from full URL: ", asin)
                     return asin
