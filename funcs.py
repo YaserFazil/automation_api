@@ -591,8 +591,6 @@ def get_asin_from_text(text):
         short_url_match = re.search(short_url_pattern, text)
 
         print("Shared URL of the product: ", text)
-        # Initialize expanded_url to None
-        expanded_url = None
         if short_url_match:
             short_url = short_url_match.group(0)
             expanded_url = expand_url(short_url)
@@ -602,7 +600,7 @@ def get_asin_from_text(text):
                     print("ASIN from short URL: ", asin)
                     return asin
             # If expanding the short URL doesn't work, we still try the next pattern
-    except:
+    except Exception as e:
         print("trying full amazon url")
         try:
             # If no short URL found or URL expansion didn't work, try the full Amazon URL pattern
@@ -615,7 +613,7 @@ def get_asin_from_text(text):
                 if asin:
                     print("ASIN from full URL: ", asin)
                     return asin
-        except:
+        except Exception as e:
             print("not worked")
             # If neither pattern matches, return None
             return None
