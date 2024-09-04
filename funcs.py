@@ -4,6 +4,7 @@ from appium.webdriver.common.appiumby import AppiumBy
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.action_chains import ActionChains
 from time import sleep
 from dotenv import load_dotenv
 import os
@@ -160,47 +161,82 @@ class runAndroidAutomation:
 
             max_attempts = 1
             attempts = 0
+            products_checked = 0  # Track number of products checked before scrolling
+
+            def scroll_down(driver):
+                # Scroll down using ActionChains
+                actions = ActionChains(driver)
+                # Assuming scrolling from middle to bottom to simulate a swipe
+                actions.scroll_by_amount(
+                    0, 200
+                ).perform()  # Adjust the vertical scroll amount as necessary
 
             while attempts < max_attempts:
                 try:
-                    # Attempt to find and click the product element
-                    product = WebDriverWait(self.driver, 6).until(
-                        EC.presence_of_element_located(
-                            (
-                                AppiumBy.XPATH,
-                                '//android.view.View[@resource-id="search"]/android.view.View[10]',
-                            )
-                        )
-                    )
-                    product.click()
-                    clipboard_text = self.share_finder(
-                        '//android.widget.Image[@text="Share"]'
-                    )
-                    if clipboard_text is None:
-                        raise TimeoutException
-                    break
-                except TimeoutException:
-                    attempts += 1
-                    try:
-                        xpath_product = '//android.view.View[@resource-id="search"]/android.view.View[4]'
-                        # Scroll until the element is found using UiScrollable
-                        self.driver.find_element(
-                            AppiumBy.ANDROID_UIAUTOMATOR,
-                            "new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView("
-                            'new UiSelector().xpath("{}"))'.format(xpath_product),
-                        )
-                        another_product = WebDriverWait(self.driver, 6).until(
-                            EC.presence_of_element_located(
-                                (
-                                    AppiumBy.XPATH,
-                                    xpath_product,
+                    # Start with the first product and iterate over potential product listings
+                    for i in range(
+                        3, 15
+                    ):  # Assuming a range of possible product listing indices, adjust as needed
+                        product_xpath = f'//android.view.View[@resource-id="search"]/android.view.View[{i}]'
+
+                        try:
+                            # Attempt to find the product element
+                            product = WebDriverWait(self.driver, 6).until(
+                                EC.presence_of_element_located(
+                                    (AppiumBy.XPATH, product_xpath)
                                 )
                             )
-                        )
-                        another_product.click()
-                    except Exception as e:
-                        print("Continue")
-                        continue
+
+                            # Retrieve content-desc attribute
+                            content_desc = product.get_attribute("content-desc")
+
+                            if content_desc:
+                                # Check if the first word is "Sponsored"
+                                if content_desc.split()[0].lower() == "sponsored":
+                                    print(f"Product {i} is sponsored. Skipping...")
+                                    continue  # Skip the sponsored product
+
+                                # If not sponsored, proceed to click the product
+                                print(
+                                    f"Product {i} is not sponsored. Clicking on it..."
+                                )
+                                product.click()
+
+                                # Check if the Share button is available after clicking
+                                clipboard_text = self.share_finder(
+                                    '//android.widget.Image[@text="Share"]'
+                                )
+                                if clipboard_text is None:
+                                    raise TimeoutException
+
+                                # Break out of the loop if the product is clicked successfully
+                                break
+                            else:
+                                print(f"Product {i} has no content-desc, skipping...")
+                                continue
+
+                        except TimeoutException:
+                            print(
+                                f"Product {i} not found. Moving to the next product..."
+                            )
+                            continue
+
+                        # Increment the count of products checked
+                        products_checked += 1
+
+                        # Scroll after checking 2 products
+                        if products_checked % 2 == 0:
+                            print("Scrolling down to load more products...")
+                            scroll_down(self.driver)
+
+                    # Break if a valid product was clicked
+                    if product:
+                        break
+
+                except TimeoutException:
+                    # Increment attempt counter
+                    attempts += 1
+                    print(f"Attempt {attempts} failed. Retrying...")
 
             # Handle failure case if all attempts are exhausted
             if attempts == max_attempts:
@@ -208,10 +244,7 @@ class runAndroidAutomation:
                     scn_product_type = '//android.webkit.WebView[@text="Amazon.ca"]/android.view.View/android.view.View/android.view.View[3]'
                     product = WebDriverWait(self.driver, 6).until(
                         EC.presence_of_element_located(
-                            (
-                                AppiumBy.XPATH,
-                                scn_product_type,
-                            )
+                            (AppiumBy.XPATH, scn_product_type)
                         )
                     )
                     product.click()
@@ -220,10 +253,7 @@ class runAndroidAutomation:
                         thr_product_type = '//android.webkit.WebView[@text="Amazon.ca"]/android.view.View/android.view.View/android.view.View[2]'
                         product = WebDriverWait(self.driver, 6).until(
                             EC.presence_of_element_located(
-                                (
-                                    AppiumBy.XPATH,
-                                    thr_product_type,
-                                )
+                                (AppiumBy.XPATH, thr_product_type)
                             )
                         )
                         product.click()
@@ -232,10 +262,7 @@ class runAndroidAutomation:
                             fourt_product_type = '//android.webkit.WebView[@text="Amazon.ca"]/android.view.View/android.view.View/android.view.View[2]'
                             product = WebDriverWait(self.driver, 6).until(
                                 EC.presence_of_element_located(
-                                    (
-                                        AppiumBy.XPATH,
-                                        fourt_product_type,
-                                    )
+                                    (AppiumBy.XPATH, fourt_product_type)
                                 )
                             )
                             product.click()
@@ -247,7 +274,6 @@ class runAndroidAutomation:
                                 "status": "failed",
                                 "msg": "Reached max attempts for trying! No product found",
                             }
-
             # Get ASIN from page source
             clipboard_text = self.share_finder('//android.widget.Image[@text="Share"]')
             asin = get_asin_from_text(clipboard_text)
