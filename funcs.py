@@ -191,6 +191,7 @@ class runAndroidAutomation:
                             content_desc = product.get_attribute("content-desc")
 
                             if content_desc:
+                                print("Here is content_desc: ", content_desc)
                                 # Check if the first word is "Sponsored"
                                 if content_desc.split()[0].lower() == "sponsored":
                                     print(f"Product {i} is sponsored. Skipping...")
