@@ -175,7 +175,7 @@ class runAndroidAutomation:
                 try:
                     # Start with the first product and iterate over potential product listings
                     for i in range(
-                        3, 15
+                        3, 10
                     ):  # Assuming a range of possible product listing indices, adjust as needed
                         product_xpath = f'//android.view.View[@resource-id="search"]/android.view.View[{i}]'
 
@@ -188,10 +188,14 @@ class runAndroidAutomation:
                             )
 
                             # Now locate the child element inside the product that contains the content-desc attribute
-                            content_desc_element = product.find_element(AppiumBy.XPATH, './/android.view.View[@content-desc]')
+                            content_desc_element = product.find_element(
+                                AppiumBy.XPATH, ".//android.view.View[@content-desc]"
+                            )
 
                             # Retrieve content-desc attribute
-                            content_desc = content_desc_element.get_attribute('content-desc')
+                            content_desc = content_desc_element.get_attribute(
+                                "content-desc"
+                            )
 
                             if content_desc:
                                 print("Here is content_desc: ", content_desc)
