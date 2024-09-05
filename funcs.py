@@ -187,8 +187,11 @@ class runAndroidAutomation:
                                 )
                             )
 
+                            # Now locate the child element inside the product that contains the content-desc attribute
+                            content_desc_element = product.find_element(AppiumBy.XPATH, './/android.view.View[@content-desc]')
+
                             # Retrieve content-desc attribute
-                            content_desc = product.get_attribute("content-desc")
+                            content_desc = content_desc_element.get_attribute('content-desc')
 
                             if content_desc:
                                 print("Here is content_desc: ", content_desc)
