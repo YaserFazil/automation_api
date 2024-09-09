@@ -141,6 +141,7 @@ def get_product_info_selenium(upc_code):
         return product_info
 
     except Exception as e:
+        print("An error occurred: ", str(e))
         return f"An error occurred: {str(e)}"
 
     finally:

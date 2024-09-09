@@ -603,7 +603,11 @@ def product_scraper():
     # Check if the code is UPC (12 digits)
     elif product_code.isdigit():
         results = upc_to_asin_logic(product_code)
-        if product_code in results and results[product_code]:
+        if (
+            product_code in results
+            and results[product_code]
+            and results[product_code][0] != "No ASIN found"
+        ):
             asin = results[product_code][0]
         else:
             asin = None
