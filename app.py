@@ -282,7 +282,7 @@ def hello_world():
 def fnsku_to_asin_logic_us_amz(product_code, entry_id, memento_lib_id, memento_token):
     with lock:
         # Define the endpoint
-        url = "https://e664-2607-fea8-edd-2000-d482-7a5a-9b71-bc19.ngrok-free.app/product-scraper"
+        url = f"{os.getenv("NGROK_US_LAPTOP_ENDPOINT")}/product-scraper"
 
         # Define the parameters for the GET request
         params = {

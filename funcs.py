@@ -144,9 +144,27 @@ class runAndroidAutomation:
                 )
                 if self.reopen_app():
                     opens = 0
+                    take_pic = WebDriverWait(self.driver, 6).until(
+                        EC.presence_of_element_located(
+                            (
+                                AppiumBy.XPATH,
+                                '//android.widget.ImageView[@resource-id="com.amazon.mShop.android.shopping:id/chrome_action_bar_camera_icon"]',
+                            )
+                        )
+                    )
+                    take_pic.click()
             except Exception:
                 if self.reopen_app():
                     opens = 0
+                    take_pic = WebDriverWait(self.driver, 6).until(
+                        EC.presence_of_element_located(
+                            (
+                                AppiumBy.XPATH,
+                                '//android.widget.ImageView[@resource-id="com.amazon.mShop.android.shopping:id/chrome_action_bar_camera_icon"]',
+                            )
+                        )
+                    )
+                    take_pic.click()
 
             # Click on the barcode icon
             barcode = WebDriverWait(self.driver, 6).until(
