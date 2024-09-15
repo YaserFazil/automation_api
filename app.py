@@ -35,6 +35,9 @@ COMPRESSION_SPEED_MB_PER_SEC = 1500
 
 PUBLIC_BUCKET_URL = os.getenv("PUBLIC_BUCKET_URL")
 
+canada_lock = Lock()  # Lock for Canadian automation
+usa_lock = Lock()     # Lock for USA automation
+
 
 # Upload images in {username}/images folder in AWS S3 Bucket
 @app.route("/upload", methods=["POST"])
@@ -280,7 +283,7 @@ def hello_world():
 
 
 def fnsku_to_asin_logic_us_amz(product_code, entry_id, memento_lib_id, memento_token):
-    with lock:
+    with usa_lock:
         # Define the endpoint
         url = f"{os.getenv('NGROK_US_LAPTOP_ENDPOINT')}/product-scraper"
 
@@ -299,7 +302,7 @@ def fnsku_to_asin_logic_us_amz(product_code, entry_id, memento_lib_id, memento_t
 
 
 def fnsku_to_asin_logic(fnskus):
-    with lock:
+    with canada_lock:
         results = []
         for fnsku in fnskus:
             try:
