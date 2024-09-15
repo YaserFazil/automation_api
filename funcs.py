@@ -199,7 +199,7 @@ class runAndroidAutomation:
 
                         try:
                             # Attempt to find the product element
-                            product = WebDriverWait(self.driver, 3).until(
+                            product = WebDriverWait(self.driver, 2).until(
                                 EC.presence_of_element_located(
                                     (AppiumBy.XPATH, product_xpath)
                                 )
@@ -268,7 +268,7 @@ class runAndroidAutomation:
             if attempts == max_attempts:
                 try:
                     scn_product_type = '//android.webkit.WebView[@text="Amazon.ca"]/android.view.View/android.view.View/android.view.View[3]'
-                    product = WebDriverWait(self.driver, 3).until(
+                    product = WebDriverWait(self.driver, 2).until(
                         EC.presence_of_element_located(
                             (AppiumBy.XPATH, scn_product_type)
                         )
@@ -277,7 +277,7 @@ class runAndroidAutomation:
                 except TimeoutException:
                     try:
                         thr_product_type = '//android.webkit.WebView[@text="Amazon.ca"]/android.view.View/android.view.View/android.view.View[2]'
-                        product = WebDriverWait(self.driver, 3).until(
+                        product = WebDriverWait(self.driver, 2).until(
                             EC.presence_of_element_located(
                                 (AppiumBy.XPATH, thr_product_type)
                             )
@@ -286,7 +286,7 @@ class runAndroidAutomation:
                     except TimeoutException:
                         try:
                             fourt_product_type = '//android.webkit.WebView[@text="Amazon.ca"]/android.view.View/android.view.View/android.view.View[2]'
-                            product = WebDriverWait(self.driver, 3).until(
+                            product = WebDriverWait(self.driver, 2).until(
                                 EC.presence_of_element_located(
                                     (AppiumBy.XPATH, fourt_product_type)
                                 )
