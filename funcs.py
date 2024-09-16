@@ -193,8 +193,10 @@ class runAndroidAutomation:
                 try:
                     is_results_opened = WebDriverWait(self.driver, 3).until(
                         EC.presence_of_element_located(
-                            AppiumBy.XPATH,
-                            '//android.widget.FrameLayout[@resource-id="com.amazon.mShop.android.shopping:id/lens_header"]',
+                            (
+                                AppiumBy.XPATH,
+                                '//android.widget.FrameLayout[@resource-id="com.amazon.mShop.android.shopping:id/lens_header"]',
+                            )
                         )
                     )
                     # Start with the first product and iterate over potential product listings
