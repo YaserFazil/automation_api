@@ -191,6 +191,12 @@ class runAndroidAutomation:
 
             while attempts < max_attempts:
                 try:
+                    is_results_opened = WebDriverWait(self.driver, 3).until(
+                        EC.presence_of_element_located(
+                            AppiumBy.XPATH,
+                            '//android.widget.FrameLayout[@resource-id="com.amazon.mShop.android.shopping:id/lens_header"]',
+                        )
+                    )
                     # Start with the first product and iterate over potential product listings
                     for i in range(
                         3, 10
@@ -245,7 +251,6 @@ class runAndroidAutomation:
                             print(
                                 f"Product {i} not found. Moving to the next product..."
                             )
-                            continue
 
                         # Increment the count of products checked
                         products_checked += 1
