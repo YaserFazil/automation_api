@@ -188,6 +188,28 @@ class runAndroidAutomation:
                 actions.scroll_by_amount(
                     0, 200
                 ).perform()  # Adjust the vertical scroll amount as necessary
+            # def scroll_down(driver):
+            #     # Get the window size
+            #     window_size = driver.get_window_size()
+            #     width = window_size["width"]
+            #     height = window_size["height"]
+
+            #     # Set the start and end points for the swipe gesture
+            #     start_x = width // 2
+            #     start_y = int(height * 0.8)  # Start at 80% of the screen height
+            #     end_y = int(height * 0.2)  # End at 20% of the screen height
+
+            #     # Use execute_script with the 'touchPerform' mobile command to simulate the swipe
+            #     driver.execute_script(
+            #         "mobile: swipeGesture",
+            #         {
+            #             "startX": start_x,
+            #             "startY": start_y,
+            #             "endX": start_x,
+            #             "endY": end_y,
+            #             "duration": 1000,  # Duration in milliseconds
+            #         },
+            #     )
 
             while attempts < max_attempts:
                 try:
@@ -228,6 +250,8 @@ class runAndroidAutomation:
                                 # Check if the first word is "Sponsored"
                                 if content_desc.split()[0].lower() == "sponsored":
                                     print(f"Product {i} is sponsored. Skipping...")
+                                    # Increment the count of products checked
+                                    products_checked += 1
                                     continue  # Skip the sponsored product
 
                                 # If not sponsored, proceed to click the product
@@ -247,6 +271,8 @@ class runAndroidAutomation:
                                 break
                             else:
                                 print(f"Product {i} has no content-desc, skipping...")
+                                # Increment the count of products checked
+                                products_checked += 1
                                 continue
 
                         except TimeoutException:
