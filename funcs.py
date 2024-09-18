@@ -203,6 +203,7 @@ class runAndroidAutomation:
                 driver.execute_script(
                     "mobile: swipeGesture",
                     {
+                        "direction": "up",  # Scroll down corresponds to an "up" direction swipe
                         "startX": start_x,
                         "startY": start_y,
                         "endX": start_x,
