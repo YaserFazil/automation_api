@@ -203,13 +203,13 @@ class runAndroidAutomation:
                 driver.execute_script(
                     "mobile: swipeGesture",
                     {
-                        "direction": "up",  # Scroll down corresponds to an "up" direction swipe
-                        "percent": 0.75,    # Swipe for 75% of the screen
                         "startX": start_x,
                         "startY": start_y,
                         "endX": start_x,
                         "endY": end_y,
+                        "percent": 0.75,  # Swipe for 75% of the screen
                         "duration": 1000,  # Duration in milliseconds
+                        "direction": "up",  # Swipe direction
                     },
                 )
 
