@@ -194,19 +194,21 @@ class runAndroidAutomation:
                 width = window_size["width"]
                 height = window_size["height"]
 
-                # Set the start and end points for the swipe gesture
-                start_x = width // 2
-                start_y = int(height * 0.8)  # Start at 80% of the screen height
-                end_y = int(height * 0.2)  # End at 20% of the screen height
-
+                # Define the bounding area for the swipe gesture
+                left = 0  # Starting from the leftmost part of the screen
+                top = int(height * 0.2)  # Start at 20% from the top of the screen
+                swipe_width = width
+                swipe_height = int(
+                    height * 0.6
+                )  # The swipe will cover 60% of the screen height
                 # Use execute_script with the 'touchPerform' mobile command to simulate the swipe
                 driver.execute_script(
                     "mobile: swipeGesture",
                     {
-                        "startX": start_x,
-                        "startY": start_y,
-                        "endX": start_x,
-                        "endY": end_y,
+                        "left": left,
+                        "top": top,
+                        "width": swipe_width,
+                        "height": swipe_height,
                         "percent": 0.75,  # Swipe for 75% of the screen
                         "duration": 1000,  # Duration in milliseconds
                         "direction": "up",  # Swipe direction
