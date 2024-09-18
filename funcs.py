@@ -181,35 +181,35 @@ class runAndroidAutomation:
             attempts = 0
             products_checked = 0  # Track number of products checked before scrolling
 
-            def scroll_down(driver):
-                # Scroll down using ActionChains
-                actions = ActionChains(driver)
-                # Assuming scrolling from middle to bottom to simulate a swipe
-                actions.scroll_by_amount(
-                    0, 200
-                ).perform()  # Adjust the vertical scroll amount as necessary
             # def scroll_down(driver):
-            #     # Get the window size
-            #     window_size = driver.get_window_size()
-            #     width = window_size["width"]
-            #     height = window_size["height"]
+            #     # Scroll down using ActionChains
+            #     actions = ActionChains(driver)
+            #     # Assuming scrolling from middle to bottom to simulate a swipe
+            #     actions.scroll_by_amount(
+            #         0, 200
+            #     ).perform()  # Adjust the vertical scroll amount as necessary
+            def scroll_down(driver):
+                # Get the window size
+                window_size = driver.get_window_size()
+                width = window_size["width"]
+                height = window_size["height"]
 
-            #     # Set the start and end points for the swipe gesture
-            #     start_x = width // 2
-            #     start_y = int(height * 0.8)  # Start at 80% of the screen height
-            #     end_y = int(height * 0.2)  # End at 20% of the screen height
+                # Set the start and end points for the swipe gesture
+                start_x = width // 2
+                start_y = int(height * 0.8)  # Start at 80% of the screen height
+                end_y = int(height * 0.2)  # End at 20% of the screen height
 
-            #     # Use execute_script with the 'touchPerform' mobile command to simulate the swipe
-            #     driver.execute_script(
-            #         "mobile: swipeGesture",
-            #         {
-            #             "startX": start_x,
-            #             "startY": start_y,
-            #             "endX": start_x,
-            #             "endY": end_y,
-            #             "duration": 1000,  # Duration in milliseconds
-            #         },
-            #     )
+                # Use execute_script with the 'touchPerform' mobile command to simulate the swipe
+                driver.execute_script(
+                    "mobile: swipeGesture",
+                    {
+                        "startX": start_x,
+                        "startY": start_y,
+                        "endX": start_x,
+                        "endY": end_y,
+                        "duration": 1000,  # Duration in milliseconds
+                    },
+                )
 
             while attempts < max_attempts:
                 try:
