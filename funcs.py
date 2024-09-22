@@ -209,7 +209,7 @@ class runAndroidAutomation:
                         "top": top,
                         "width": swipe_width,
                         "height": swipe_height,
-                        "percent": 0.2,  # Swipe for 75% of the screen
+                        "percent": 0.1,  # Swipe for 75% of the screen
                         "duration": 1000,  # Duration in milliseconds
                         "direction": "up",  # Swipe direction
                     },
