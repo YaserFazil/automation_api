@@ -266,6 +266,10 @@ class runAndroidAutomation:
 
                             if sponsored_product:
                                 products_checked += 1
+                                # Scroll after checking 2 products
+                                if products_checked % 2 == 0:
+                                    print("Scrolling down to load more products...")
+                                    scroll_down(self.driver)
                                 continue  # Skip the sponsored product
 
                             # If not sponsored, proceed to click the product
