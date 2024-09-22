@@ -242,33 +242,33 @@ class runAndroidAutomation:
                                 )
                             )
                             print('passed 1')
-                            # Now locate the child element inside the product that contains the content-desc attribute
-                            # content_desc_element = WebDriverWait(self.driver, 7).until(EC.presence_of_element_located((AppiumBy.XPATH, ".//android.view.View[@content-desc]")))
-                            content_desc_element = product.find_element(
+
+                            # Find all elements with content-desc within the product
+                            content_desc_elements = product.find_elements(
                                 AppiumBy.XPATH, ".//android.view.View[@content-desc]"
                             )
                             print('passed 2')
-                            # Retrieve content-desc attribute
-                            content_desc = content_desc_element.get_attribute(
-                                "content-desc"
-                            )
-                            print("passed 3")
 
-                            if content_desc:
+                            # Iterate through all content-desc elements and check their values
+                            sponsored_product = False
+                            for content_desc_element in content_desc_elements:
+                                content_desc = content_desc_element.get_attribute("content-desc")
                                 print("Here is content_desc: ", content_desc)
-                                # Check if the first word is "Sponsored"
-                                if content_desc.split()[0].lower() == "sponsored":
+                                
+                                # Check if any content-desc contains the word "Sponsored"
+                                if "sponsored" in content_desc.lower():
                                     print(f"Product {i} is sponsored. Skipping...")
-                                    # Increment the count of products checked
-                                    products_checked += 1
-                                    continue  # Skip the sponsored product
+                                    sponsored_product = True
+                                    break
 
-                                # If not sponsored, proceed to click the product
-                                print(
-                                    f"Product {i} is not sponsored. Clicking on it..."
-                                )
-                                product.click()
-                                print("passed 4")
+                            if sponsored_product:
+                                products_checked += 1
+                                continue  # Skip the sponsored product
+
+                            # If not sponsored, proceed to click the product
+                            print(f"Product {i} is not sponsored. Clicking on it...")
+                            product.click()
+                            print("passed 4")
                                 # Check if the Share button is available after clicking
                                 # clipboard_text = self.share_finder(
                                 #     '//android.widget.Image[@text="Share"]'
@@ -277,12 +277,12 @@ class runAndroidAutomation:
                                 #     raise TimeoutException
 
                                 # Break out of the loop if the product is clicked successfully
-                                break
-                            else:
-                                print(f"Product {i} has no content-desc, skipping...")
-                                # Increment the count of products checked
-                                products_checked += 1
-                                continue
+                            break
+                            # else:
+                            #     print(f"Product {i} has no content-desc, skipping...")
+                            #     # Increment the count of products checked
+                            #     products_checked += 1
+                            #     continue
 
                         except TimeoutException:
                             print(
