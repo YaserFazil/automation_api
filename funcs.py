@@ -242,13 +242,16 @@ class runAndroidAutomation:
                                 )
                             )
                             print('passed 1')
-
                             # Find all elements with content-desc within the product
                             content_desc_elements = product.find_elements(
                                 AppiumBy.XPATH, ".//android.view.View[@content-desc]"
                             )
                             print('passed 2')
-
+                            if content_desc_elements == []:
+                                print(f"Product {i} has no content-desc, skipping...")
+                                # Increment the count of products checked
+                                products_checked += 1
+                                continue
                             # Iterate through all content-desc elements and check their values
                             sponsored_product = False
                             for content_desc_element in content_desc_elements:
