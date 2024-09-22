@@ -34,7 +34,7 @@ copy_clipboard = (
     '//android.widget.LinearLayout[@resource-id="android:id/chooser_action_row"]'
 )
 copy_clipboard = (
-    '//android.widget.FrameLayout[@content-desc="Copy"]/android.widget.ImageView'
+    os.getenv("COPY_CLIPBOARD_XPATH")
 )
 share_action = '//android.view.View[@resource-id="ssf-share-action"]'
 
@@ -65,11 +65,11 @@ class runAndroidAutomation:
     def get_text_from_clipboard(self, share_xpath):
         try:
             # Wait for the share icon to load (adjust the timeout and CSS selector as needed)
-            share_icon = WebDriverWait(self.driver, 3).until(
+            share_icon = WebDriverWait(self.driver, 6).until(
                 EC.presence_of_element_located((AppiumBy.XPATH, share_xpath))
             )
             share_icon.click()
-            copy_icon = WebDriverWait(self.driver, 3).until(
+            copy_icon = WebDriverWait(self.driver, 6).until(
                 EC.presence_of_element_located((AppiumBy.XPATH, copy_clipboard))
             )
             copy_icon.click()
@@ -129,7 +129,7 @@ class runAndroidAutomation:
 
             # Try to click on the camera icon to take a picture
             try:
-                take_pic = WebDriverWait(self.driver, 3).until(
+                take_pic = WebDriverWait(self.driver, 6).until(
                     EC.presence_of_element_located(
                         (
                             AppiumBy.XPATH,
@@ -144,7 +144,7 @@ class runAndroidAutomation:
                 )
                 if self.reopen_app():
                     opens = 0
-                    take_pic = WebDriverWait(self.driver, 3).until(
+                    take_pic = WebDriverWait(self.driver, 6).until(
                         EC.presence_of_element_located(
                             (
                                 AppiumBy.XPATH,
@@ -156,7 +156,7 @@ class runAndroidAutomation:
             except Exception:
                 if self.reopen_app():
                     opens = 0
-                    take_pic = WebDriverWait(self.driver, 3).until(
+                    take_pic = WebDriverWait(self.driver, 6).until(
                         EC.presence_of_element_located(
                             (
                                 AppiumBy.XPATH,
@@ -167,7 +167,7 @@ class runAndroidAutomation:
                     take_pic.click()
 
             # Click on the barcode icon
-            barcode = WebDriverWait(self.driver, 3).until(
+            barcode = WebDriverWait(self.driver, 6).until(
                 EC.presence_of_element_located(
                     (
                         AppiumBy.XPATH,
@@ -209,7 +209,7 @@ class runAndroidAutomation:
                         "top": top,
                         "width": swipe_width,
                         "height": swipe_height,
-                        "percent": 0.75,  # Swipe for 75% of the screen
+                        "percent": 0.2,  # Swipe for 75% of the screen
                         "duration": 1000,  # Duration in milliseconds
                         "direction": "up",  # Swipe direction
                     },
@@ -217,11 +217,11 @@ class runAndroidAutomation:
 
             while attempts < max_attempts:
                 try:
-                    is_results_opened = WebDriverWait(self.driver, 3).until(
+                    is_results_opened = WebDriverWait(self.driver, 6).until(
                         EC.presence_of_element_located(
                             (
                                 AppiumBy.XPATH,
-                                '//android.widget.FrameLayout[@resource-id="com.amazon.mShop.android.shopping:id/lens_header"]',
+                                '//android.widget.TextView[@text="Search results"]',
                             )
                         )
                     )
@@ -229,25 +229,30 @@ class runAndroidAutomation:
                     for i in range(
                         3, 10
                     ):  # Assuming a range of possible product listing indices, adjust as needed
+                        print("Here is the index", i)
                         product_xpath = f'//android.view.View[@resource-id="search"]/android.view.View[{i}]'
-
+                        priditfffffff = f'//android.view.View[@resource-id="search"]/android.view.View[3]'
+                        print(product_xpath)
+                        print(priditfffffff)
                         try:
                             # Attempt to find the product element
-                            product = WebDriverWait(self.driver, 2).until(
+                            product = WebDriverWait(self.driver, 7).until(
                                 EC.presence_of_element_located(
                                     (AppiumBy.XPATH, product_xpath)
                                 )
                             )
-
+                            print('passed 1')
                             # Now locate the child element inside the product that contains the content-desc attribute
+                            # content_desc_element = WebDriverWait(self.driver, 7).until(EC.presence_of_element_located((AppiumBy.XPATH, ".//android.view.View[@content-desc]")))
                             content_desc_element = product.find_element(
                                 AppiumBy.XPATH, ".//android.view.View[@content-desc]"
                             )
-
+                            print('passed 2')
                             # Retrieve content-desc attribute
                             content_desc = content_desc_element.get_attribute(
                                 "content-desc"
                             )
+                            print("passed 3")
 
                             if content_desc:
                                 print("Here is content_desc: ", content_desc)
@@ -263,13 +268,13 @@ class runAndroidAutomation:
                                     f"Product {i} is not sponsored. Clicking on it..."
                                 )
                                 product.click()
-
+                                print("passed 4")
                                 # Check if the Share button is available after clicking
-                                clipboard_text = self.share_finder(
-                                    '//android.widget.Image[@text="Share"]'
-                                )
-                                if clipboard_text is None:
-                                    raise TimeoutException
+                                # clipboard_text = self.share_finder(
+                                #     '//android.widget.Image[@text="Share"]'
+                                # )
+                                # if clipboard_text is None:
+                                #     raise TimeoutException
 
                                 # Break out of the loop if the product is clicked successfully
                                 break
@@ -305,7 +310,7 @@ class runAndroidAutomation:
             if attempts == max_attempts:
                 try:
                     scn_product_type = '//android.webkit.WebView[@text="Amazon.ca"]/android.view.View/android.view.View/android.view.View[3]'
-                    product = WebDriverWait(self.driver, 2).until(
+                    product = WebDriverWait(self.driver, 6).until(
                         EC.presence_of_element_located(
                             (AppiumBy.XPATH, scn_product_type)
                         )
@@ -314,7 +319,7 @@ class runAndroidAutomation:
                 except TimeoutException:
                     try:
                         thr_product_type = '//android.webkit.WebView[@text="Amazon.ca"]/android.view.View/android.view.View/android.view.View[2]'
-                        product = WebDriverWait(self.driver, 2).until(
+                        product = WebDriverWait(self.driver, 6).until(
                             EC.presence_of_element_located(
                                 (AppiumBy.XPATH, thr_product_type)
                             )
@@ -323,7 +328,7 @@ class runAndroidAutomation:
                     except TimeoutException:
                         try:
                             fourt_product_type = '//android.webkit.WebView[@text="Amazon.ca"]/android.view.View/android.view.View/android.view.View[2]'
-                            product = WebDriverWait(self.driver, 2).until(
+                            product = WebDriverWait(self.driver, 6).until(
                                 EC.presence_of_element_located(
                                     (AppiumBy.XPATH, fourt_product_type)
                                 )
