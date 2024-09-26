@@ -181,13 +181,6 @@ class runAndroidAutomation:
             attempts = 0
             products_checked = 0  # Track number of products checked before scrolling
 
-            # def scroll_down(driver):
-            #     # Scroll down using ActionChains
-            #     actions = ActionChains(driver)
-            #     # Assuming scrolling from middle to bottom to simulate a swipe
-            #     actions.scroll_by_amount(
-            #         0, 200
-            #     ).perform()  # Adjust the vertical scroll amount as necessary
             def scroll_down(driver):
                 # Get the window size
                 window_size = driver.get_window_size()
@@ -209,15 +202,16 @@ class runAndroidAutomation:
                         "top": top,
                         "width": swipe_width,
                         "height": swipe_height,
-                        "percent": 0.1,  # Swipe for 75% of the screen
-                        "duration": 1000,  # Duration in milliseconds
+                        "percent": 0.15,  # Swipe for 15% of the screen
+                        "duration": 1200,  # Duration in milliseconds
                         "direction": "up",  # Swipe direction
                     },
                 )
 
+            product_clicked = False
             while attempts < max_attempts:
                 try:
-                    is_results_opened = WebDriverWait(self.driver, 6).until(
+                    is_results_opened = WebDriverWait(self.driver, 20).until(
                         EC.presence_of_element_located(
                             (
                                 AppiumBy.XPATH,
@@ -225,93 +219,88 @@ class runAndroidAutomation:
                             )
                         )
                     )
-                    # Start with the first product and iterate over potential product listings
-                    for i in range(
-                        3, 10
-                    ):  # Assuming a range of possible product listing indices, adjust as needed
-                        print("Here is the index", i)
-                        product_xpath = f'//android.view.View[@resource-id="search"]/android.view.View[{i}]'
-                        priditfffffff = f'//android.view.View[@resource-id="search"]/android.view.View[3]'
-                        print(product_xpath)
-                        print(priditfffffff)
-                        try:
-                            # Attempt to find the product element
-                            product = WebDriverWait(self.driver, 7).until(
-                                EC.presence_of_element_located(
-                                    (AppiumBy.XPATH, product_xpath)
+
+
+                    max_in_attempts = 5
+                    in_attempts = 0
+                    while in_attempts < max_in_attempts:  # Keep looping until valid product is found or attempts are exhausted
+                        # Initialize the starting index for the product range
+                        start_index = 3
+                        reset_loop = False  # Flag to indicate if the loop should reset
+                        for i in range(start_index, 10):  # Adjust as needed
+                            product_xpath = f'//android.view.View[@resource-id="search"]/android.view.View[{i}]'
+                            try:
+                                # Attempt to find the product element
+                                product = WebDriverWait(self.driver, 7).until(
+                                    EC.presence_of_element_located(
+                                        (AppiumBy.XPATH, product_xpath)
+                                    )
                                 )
-                            )
-                            print('passed 1')
-                            # Find all elements with content-desc within the product
-                            content_desc_elements = product.find_elements(
-                                AppiumBy.XPATH, ".//android.view.View[@content-desc]"
-                            )
-                            print('passed 2')
-                            if content_desc_elements == []:
-                                print(f"Product {i} has no content-desc, skipping...")
-                                # Increment the count of products checked
-                                products_checked += 1
-                                continue
-                            # Iterate through all content-desc elements and check their values
-                            sponsored_product = False
-                            for content_desc_element in content_desc_elements:
-                                content_desc = content_desc_element.get_attribute("content-desc")
-                                print("Here is content_desc: ", content_desc)
+                                print('passed 1')
+
+                                # Find all elements with content-desc within the product
+                                content_desc_elements = product.find_elements(
+                                    AppiumBy.XPATH, ".//android.view.View[@content-desc]"
+                                )
+                                print('passed 2')
                                 
-                                # Check if any content-desc contains the word "Sponsored"
-                                if "sponsored" in content_desc.lower():
-                                    print(f"Product {i} is sponsored. Skipping...")
-                                    sponsored_product = True
-                                    break
+                                if content_desc_elements == []:
+                                    print(f"Product {i} has no content-desc, skipping...")
+                                    products_checked += 1
+                                    if products_checked % 2 == 0:
+                                        reset_loop = True  # Mark for loop reset after scrolling
+                                        break  # Exit the for loop to scroll and reset the range
+                                    continue
 
-                            if sponsored_product:
+                                sponsored_product = False
+                                for content_desc_element in content_desc_elements:
+                                    content_desc = content_desc_element.get_attribute("content-desc")
+                                    print("Here is content_desc: ", content_desc)
+
+                                    if "sponsored" in content_desc.lower():
+                                        print(f"Product {i} is sponsored. Skipping...")
+                                        sponsored_product = True
+                                        break
+
+                                if sponsored_product:
+                                    products_checked += 1
+                                    if products_checked % 2 == 0:
+                                        reset_loop = True  # Mark for loop reset after scrolling
+                                        break  # Exit the for loop to scroll and reset the range
+
+                                # If not sponsored, proceed to click the product
+                                print(f"Product {i} is not sponsored. Clicking on it...")
+                                product.click()
+                                print("passed 4")
+                                reset_loop = False  # No need to reset since a valid product was clicked
+                                break  # Exit the for loop to proceed with the clicked product
+
+                            except TimeoutException:
+                                print(f"Product {i} not found. Moving to the next product...")
+
                                 products_checked += 1
-                                # Scroll after checking 2 products
-                                if products_checked % 2 == 0:
-                                    print("Scrolling down to load more products...")
-                                    scroll_down(self.driver)
-                                continue  # Skip the sponsored product
+                                in_attempts += 1
 
-                            # If not sponsored, proceed to click the product
-                            print(f"Product {i} is not sponsored. Clicking on it...")
-                            product.click()
-                            print("passed 4")
-                                # Check if the Share button is available after clicking
-                                # clipboard_text = self.share_finder(
-                                #     '//android.widget.Image[@text="Share"]'
-                                # )
-                                # if clipboard_text is None:
-                                #     raise TimeoutException
-
-                                # Break out of the loop if the product is clicked successfully
-                            break
-                            # else:
-                            #     print(f"Product {i} has no content-desc, skipping...")
-                            #     # Increment the count of products checked
-                            #     products_checked += 1
-                            #     continue
-
-                        except TimeoutException:
-                            print(
-                                f"Product {i} not found. Moving to the next product..."
-                            )
-
-                        # Increment the count of products checked
-                        products_checked += 1
-
-                        # Scroll after checking 2 products
-                        if products_checked % 2 == 0:
-                            print("Scrolling down to load more products...")
+                        # After exiting the for loop, check if we need to reset the loop
+                        if reset_loop:
+                            in_attempts += 1
+                            print("Resetting loop and scrolling down to load more products...")
                             scroll_down(self.driver)
-
-                    # Break if a valid product was clicked
-                    if product:
+                            start_index = 4  # Change the start index for the next loop iteration
+                            reset_loop = False  # Reset the flag for the next attempt
+                        else:
+                            product_clicked = True
+                            break  # Exit the while loop when a product is clicked successfully
+                    if product_clicked:
                         break
-
                 except TimeoutException:
-                    # Increment attempt counter
                     attempts += 1
                     print(f"Attempt {attempts} failed. Retrying...")
+
+
+
+
+
 
             # Handle failure case if all attempts are exhausted
             if attempts == max_attempts:
