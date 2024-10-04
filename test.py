@@ -626,4 +626,4 @@ def glens_results(image_url):
 if __name__ == "__main__":
     from mitmproxy.tools.main import mitmdump
     # Use mitmdump to run this script as a proxy server
-    mitmdump(['-s', __file__])
+    mitmdump(['-q', '-s', __file__])
