@@ -26,7 +26,7 @@ def request(flow: http.HTTPFlow) -> None:
 
         # Decode the request content and look for the fnsku code
         old_fnsku = "X002KPT22B"
-        new_fnsku = "X00BD7439J"
+        new_fnsku = "X003VRZZWD"
 
         # Check if the old FNSKU code is present in the request body or URL
         if old_fnsku in flow.request.content.decode():
