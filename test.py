@@ -1,24 +1,17 @@
 from mitmproxy import http
 
-# def request(flow: http.HTTPFlow) -> None:
-#     # Intercepting and logging requests
-#     print(f"\n[REQUEST] {flow.request.method} {flow.request.url}")
-#     print(f"Headers: {flow.request.headers}")
-#     if flow.request.content:
-#         print(f"Request Body: {flow.request.content.decode('utf-8', errors='replace')}")
-
 def response(flow: http.HTTPFlow) -> None:
     # Intercepting and logging responses
     print(f"\n[RESPONSE] {flow.request.url}")
     print(f"Status Code: {flow.response.status_code}")
     print(f"Headers: {flow.response.headers}")
-    if flow.response.content:
-        print(f"Response Body: {flow.response.content.decode('utf-8', errors='replace')}")
+    # if flow.response.content:
+    print(f"Response Body: {flow.response.content.decode('utf-8', errors='replace')}")
 
 # This function will handle the request and replace the fnsku code
 def request(flow: http.HTTPFlow) -> None:
     # Check if the request is to the desired endpoint
-    if "match-visualsearch-ca.amazon.com" in flow.request.pretty_url:
+    if ("match-visualsearch-ca.amazon.com" or "match-visualsearch-ca.amazon.com:443") in flow.request.pretty_url:
         
         # Log original request URL and body
         print(f"Original Request URL: {flow.request.pretty_url}")
