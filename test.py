@@ -37,7 +37,7 @@ def request(flow: http.HTTPFlow) -> None:
             print(f"Original Request Body (decoded with {encoding}): {decoded_body}")
             
             # FNSKU code replacement logic
-            old_fnsku = "X003849BCD"
+            old_fnsku = "X003VRZZWD"
             new_fnsku = "X00BD7439J"
 
             # Check if the old FNSKU code is present in the request body
