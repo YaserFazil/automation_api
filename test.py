@@ -47,6 +47,7 @@ def request(flow: http.HTTPFlow) -> None:
                 modified_content = decoded_body.replace(old_fnsku, new_fnsku)
                 flow.request.set_text(modified_content)
                 print(f"Modified Request Body: {modified_content}")
+                print("Request body modified")
         else:
             # Handle binary data (if decoding failed)
             print(f"Original Request Body: Could not decode, binary content detected")
