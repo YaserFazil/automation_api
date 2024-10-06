@@ -19,7 +19,9 @@ def response(flow: http.HTTPFlow) -> None:
     # Try to decode the response body
     decoded_body, encoding = decode_content(flow.response.content)
     if decoded_body:
-        print(f"Response Body (decoded with {encoding}): {decoded_body}")
+        # print(f"Response Body (decoded with {encoding}): {decoded_body}")
+        print(f"Response Body (decoded with {encoding})")
+
     else:
         print(f"Response Body: Could not decode, binary content detected")
 
@@ -34,7 +36,7 @@ def request(flow: http.HTTPFlow) -> None:
         # Attempt to decode the request body
         decoded_body, encoding = decode_content(flow.request.content)
         if decoded_body:
-            print(f"Original Request Body (decoded with {encoding}): {decoded_body}")
+            print(f"Original Request Body (decoded with {encoding})")
             
             # FNSKU code replacement logic
             old_fnsku = "X003VRZZWD"
@@ -48,7 +50,7 @@ def request(flow: http.HTTPFlow) -> None:
         else:
             # Handle binary data (if decoding failed)
             print(f"Original Request Body: Could not decode, binary content detected")
-            print(f"Request Body (hex): {flow.request.content.hex()}")
+            # print(f"Request Body (hex): {flow.request.content.hex()}")
 
 if __name__ == "__main__":
     from mitmproxy.tools.main import mitmdump
