@@ -12,18 +12,20 @@ def decode_content(content):
     return None, None  # If none of the encodings work, return None
 
 def response(flow: http.HTTPFlow) -> None:
-    # Intercepting and logging responses
-    print(f"\n[RESPONSE] {flow.request.url}")
-    print(f"Status Code: {flow.response.status_code}")
-    print(f"Headers: {flow.response.headers}")
-    
-    # Try to decode the response body
-    decoded_body, encoding = decode_content(flow.response.content)
-    if decoded_body:
-        # print(f"Response Body (decoded with {encoding}): {decoded_body}")
-        print(f"Response Body (decoded with {encoding})")
-    else:
-        print(f"Response Body: Could not decode, binary content detected")
+    # Check if the request is to the desired endpoint
+    if "match-visualsearch-ca.amazon.com" in flow.request.url:
+        # Intercepting and logging responses
+        print(f"\n[RESPONSE] {flow.request.url}")
+        print(f"Status Code: {flow.response.status_code}")
+        print(f"Headers: {flow.response.headers}")
+        
+        # Try to decode the response body
+        decoded_body, encoding = decode_content(flow.response.content)
+        if decoded_body:
+            # print(f"Response Body (decoded with {encoding}): {decoded_body}")
+            print(f"Response Body (decoded with {encoding})")
+        else:
+            print(f"Response Body: Could not decode, binary content detected")
 
 # This function will handle the request and replace the fnsku code
 def request(flow: http.HTTPFlow) -> None:
