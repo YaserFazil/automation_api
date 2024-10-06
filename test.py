@@ -1,52 +1,54 @@
 from mitmproxy import http
 
+def decode_content(content):
+    """Attempt to decode the content using various encodings."""
+    encodings = ['utf-8', 'ISO-8859-1', 'latin1']
+    for enc in encodings:
+        try:
+            return content.decode(enc), enc
+        except UnicodeDecodeError:
+            continue
+    return None, None  # If none of the encodings work, return None
+
 def response(flow: http.HTTPFlow) -> None:
     # Intercepting and logging responses
     print(f"\n[RESPONSE] {flow.request.url}")
     print(f"Status Code: {flow.response.status_code}")
     print(f"Headers: {flow.response.headers}")
     
-    # Try to decode the response body, fallback to binary if decoding fails
-    try:
-        response_body = flow.response.content.decode('utf-8', errors='replace')
-        print(f"Response Body: {response_body}")
-    except UnicodeDecodeError:
-        print(f"Response Body (binary): {flow.response.content.hex()}")
-
+    # Try to decode the response body
+    decoded_body, encoding = decode_content(flow.response.content)
+    if decoded_body:
+        print(f"Response Body (decoded with {encoding}): {decoded_body}")
+    else:
+        print(f"Response Body: Could not decode, binary content detected")
 
 # This function will handle the request and replace the fnsku code
 def request(flow: http.HTTPFlow) -> None:
     # Check if the request is to the desired endpoint
     if "match-visualsearch-ca.amazon.com" in flow.request.pretty_url:
         
-        # Log original request URL and try to decode the request body
+        # Log original request URL
         print(f"Original Request URL: {flow.request.pretty_url}")
         
-        try:
-            original_body = flow.request.content.decode('utf-8')
-            print(f"Original Request Body: {original_body}")
-
+        # Attempt to decode the request body
+        decoded_body, encoding = decode_content(flow.request.content)
+        if decoded_body:
+            print(f"Original Request Body (decoded with {encoding}): {decoded_body}")
+            
             # FNSKU code replacement logic
-            old_fnsku = "X002KPT22B"
-            new_fnsku = "X003VRZZWD"
+            old_fnsku = "X003849BCD"
+            new_fnsku = "X00BD7439J"
 
             # Check if the old FNSKU code is present in the request body
-            if old_fnsku in original_body:
-                modified_content = original_body.replace(old_fnsku, new_fnsku)
+            if old_fnsku in decoded_body:
+                modified_content = decoded_body.replace(old_fnsku, new_fnsku)
                 flow.request.set_text(modified_content)
                 print(f"Modified Request Body: {modified_content}")
-            else:
-                print("Default old fnsku isn't in the body!")
-        
-        except UnicodeDecodeError:
-            print("Original Request Body: Could not decode, binary data detected.")
-
-        # # Check if the old FNSKU code is in the URL
-        # if old_fnsku in flow.request.pretty_url:
-        #     modified_url = flow.request.pretty_url.replace(old_fnsku, new_fnsku)
-        #     flow.request.url = modified_url
-        #     print(f"Modified Request URL: {modified_url}")
-
+        else:
+            # Handle binary data (if decoding failed)
+            print(f"Original Request Body: Could not decode, binary content detected")
+            print(f"Request Body (hex): {flow.request.content.hex()}")
 
 if __name__ == "__main__":
     from mitmproxy.tools.main import mitmdump
