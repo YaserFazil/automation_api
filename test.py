@@ -1,4 +1,5 @@
 from mitmproxy import http
+import re
 
 def decode_content(content):
     """Attempt to decode the content using various encodings."""
@@ -21,7 +22,6 @@ def response(flow: http.HTTPFlow) -> None:
     if decoded_body:
         # print(f"Response Body (decoded with {encoding}): {decoded_body}")
         print(f"Response Body (decoded with {encoding})")
-
     else:
         print(f"Response Body: Could not decode, binary content detected")
 
@@ -45,8 +45,12 @@ def request(flow: http.HTTPFlow) -> None:
             # Check if the old FNSKU code is present in the request body
             if old_fnsku in decoded_body:
                 modified_content = decoded_body.replace(old_fnsku, new_fnsku)
-                flow.request.set_text(modified_content)
-                print(f"Modified Request Body: {modified_content}")
+                
+                # Handle re-encoding after replacement
+                encoded_content = modified_content.encode(encoding)  # Re-encode the body using the original encoding
+                flow.request.content = encoded_content  # Set the re-encoded body back to the request
+                
+                print(f"Modified Request Body (re-encoded with {encoding}): {modified_content}")
                 print("Request body modified")
         else:
             # Handle binary data (if decoding failed)
