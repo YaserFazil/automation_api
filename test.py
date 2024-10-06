@@ -48,7 +48,7 @@ def request(flow: http.HTTPFlow) -> None:
                 # Handle re-encoding after replacement
                 encoded_content = modified_content.encode(encoding)  # Re-encode the body using the original encoding
                 # flow.request.content = encoded_content  # Set the re-encoded body back to the request
-                flow.request.text = encoded_content                
+                flow.request.text = modified_content              
                 print(f"Modified Request Body (re-encoded with {encoding}): {modified_content}")
                 print("Request body modified")
         else:
