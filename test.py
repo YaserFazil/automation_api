@@ -35,15 +35,17 @@ def request(flow: http.HTTPFlow) -> None:
                 modified_content = original_body.replace(old_fnsku, new_fnsku)
                 flow.request.set_text(modified_content)
                 print(f"Modified Request Body: {modified_content}")
+            else:
+                print("Default old fnsku isn't in the body!")
         
         except UnicodeDecodeError:
             print("Original Request Body: Could not decode, binary data detected.")
 
-        # Check if the old FNSKU code is in the URL
-        if old_fnsku in flow.request.pretty_url:
-            modified_url = flow.request.pretty_url.replace(old_fnsku, new_fnsku)
-            flow.request.url = modified_url
-            print(f"Modified Request URL: {modified_url}")
+        # # Check if the old FNSKU code is in the URL
+        # if old_fnsku in flow.request.pretty_url:
+        #     modified_url = flow.request.pretty_url.replace(old_fnsku, new_fnsku)
+        #     flow.request.url = modified_url
+        #     print(f"Modified Request URL: {modified_url}")
 
 
 if __name__ == "__main__":
