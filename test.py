@@ -41,15 +41,14 @@ def request(flow: http.HTTPFlow) -> None:
             # FNSKU code replacement logic
             old_fnsku = "X003VRZZWD"
             new_fnsku = "X00BD7439J"
-
             # Check if the old FNSKU code is present in the request body
             if old_fnsku in decoded_body:
                 modified_content = decoded_body.replace(old_fnsku, new_fnsku)
                 
                 # Handle re-encoding after replacement
                 encoded_content = modified_content.encode(encoding)  # Re-encode the body using the original encoding
-                flow.request.content = encoded_content  # Set the re-encoded body back to the request
-                
+                # flow.request.content = encoded_content  # Set the re-encoded body back to the request
+                flow.request.text = encoded_content                
                 print(f"Modified Request Body (re-encoded with {encoding}): {modified_content}")
                 print("Request body modified")
         else:
