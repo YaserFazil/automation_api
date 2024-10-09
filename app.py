@@ -745,7 +745,15 @@ def search_products():
 
 
 from products_payload import *
+import re
 
+def clean_price(price_str):
+    # Use regex to find all numerical parts of the string, including decimal points
+    cleaned_price = re.findall(r'\d+(?:\.\d{1,2})?', price_str)
+    
+    if cleaned_price:
+        return cleaned_price[0]  # Return the first valid price found
+    return "None"  # Return None if no price is found
 
 def insert_products_mementodb(
     memento_lib_id, memento_token, memento_entryid, data, scrape_status="Scrape Failed"
@@ -768,7 +776,8 @@ def insert_products_mementodb(
         if len(data["shopping_results"]) > 0:
             for result in data["shopping_results"]:
                 images.append(result["imageUrl"])
-                msrps.append(result["price"])
+                cleaned_price = clean_price(result["price"])
+                msrps.append(cleaned_price)
 
             images_list = create_entries_products_for_images(images)
             msrps_list = create_entries_products_for_msrps(msrps)
