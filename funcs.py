@@ -177,173 +177,18 @@ class runAndroidAutomation:
             )
             barcode.click()
 
-            max_attempts = 1
-            attempts = 0
-            products_checked = 0  # Track number of products checked before scrolling
-
-            def scroll_down(driver):
-                # Get the window size
-                window_size = driver.get_window_size()
-                width = window_size["width"]
-                height = window_size["height"]
-
-                # Define the bounding area for the swipe gesture
-                left = 0  # Starting from the leftmost part of the screen
-                top = int(height * 0.2)  # Start at 20% from the top of the screen
-                swipe_width = width
-                swipe_height = int(
-                    height * 0.6
-                )  # The swipe will cover 60% of the screen height
-                # Use execute_script with the 'touchPerform' mobile command to simulate the swipe
-                driver.execute_script(
-                    "mobile: swipeGesture",
-                    {
-                        "left": left,
-                        "top": top,
-                        "width": swipe_width,
-                        "height": swipe_height,
-                        "percent": 0.15,  # Swipe for 15% of the screen
-                        "duration": 1200,  # Duration in milliseconds
-                        "direction": "up",  # Swipe direction
-                    },
-                )
-
-            product_clicked = False
-            while attempts < max_attempts:
-                try:
-                    is_results_opened = WebDriverWait(self.driver, 20).until(
-                        EC.presence_of_element_located(
-                            (
-                                AppiumBy.XPATH,
-                                '//android.widget.TextView[@text="Search results"]',
-                            )
-                        )
-                    )
-
-
-                    max_in_attempts = 5
-                    in_attempts = 0
-                    while in_attempts < max_in_attempts:  # Keep looping until valid product is found or attempts are exhausted
-                        # Initialize the starting index for the product range
-                        start_index = 3
-                        reset_loop = False  # Flag to indicate if the loop should reset
-                        for i in range(start_index, 10):  # Adjust as needed
-                            product_xpath = f'//android.view.View[@resource-id="search"]/android.view.View[{i}]'
-                            try:
-                                # Attempt to find the product element
-                                product = WebDriverWait(self.driver, 7).until(
-                                    EC.presence_of_element_located(
-                                        (AppiumBy.XPATH, product_xpath)
-                                    )
-                                )
-                                print('passed 1')
-
-                                # Find all elements with content-desc within the product
-                                content_desc_elements = product.find_elements(
-                                    AppiumBy.XPATH, ".//android.view.View[@content-desc]"
-                                )
-                                print('passed 2')
-                                
-                                if content_desc_elements == []:
-                                    print(f"Product {i} has no content-desc, skipping...")
-                                    products_checked += 1
-                                    if products_checked % 2 == 0:
-                                        reset_loop = True  # Mark for loop reset after scrolling
-                                        break  # Exit the for loop to scroll and reset the range
-                                    continue
-
-                                sponsored_product = False
-                                for content_desc_element in content_desc_elements:
-                                    content_desc = content_desc_element.get_attribute("content-desc")
-                                    print("Here is content_desc: ", content_desc)
-
-                                    if "sponsored" in content_desc.lower():
-                                        print(f"Product {i} is sponsored. Skipping...")
-                                        sponsored_product = True
-                                        break
-
-                                if sponsored_product:
-                                    products_checked += 1
-                                    if products_checked % 2 == 0:
-                                        reset_loop = True  # Mark for loop reset after scrolling
-                                        break  # Exit the for loop to scroll and reset the range
-
-                                # If not sponsored, proceed to click the product
-                                print(f"Product {i} is not sponsored. Clicking on it...")
-                                product.click()
-                                print("passed 4")
-                                reset_loop = False  # No need to reset since a valid product was clicked
-                                break  # Exit the for loop to proceed with the clicked product
-
-                            except TimeoutException:
-                                print(f"Product {i} not found. Moving to the next product...")
-
-                                products_checked += 1
-                                in_attempts += 1
-
-                        # After exiting the for loop, check if we need to reset the loop
-                        if reset_loop:
-                            in_attempts += 1
-                            print("Resetting loop and scrolling down to load more products...")
-                            scroll_down(self.driver)
-                            start_index = 4  # Change the start index for the next loop iteration
-                            reset_loop = False  # Reset the flag for the next attempt
-                        else:
-                            product_clicked = True
-                            break  # Exit the while loop when a product is clicked successfully
-                    if product_clicked:
-                        break
-                except TimeoutException:
-                    attempts += 1
-                    print(f"Attempt {attempts} failed. Retrying...")
 
 
 
-
-
-
-            # Handle failure case if all attempts are exhausted
-            if attempts == max_attempts:
-                try:
-                    scn_product_type = '//android.webkit.WebView[@text="Amazon.ca"]/android.view.View/android.view.View/android.view.View[3]'
-                    product = WebDriverWait(self.driver, 6).until(
-                        EC.presence_of_element_located(
-                            (AppiumBy.XPATH, scn_product_type)
-                        )
-                    )
-                    product.click()
-                except TimeoutException:
-                    try:
-                        thr_product_type = '//android.webkit.WebView[@text="Amazon.ca"]/android.view.View/android.view.View/android.view.View[2]'
-                        product = WebDriverWait(self.driver, 6).until(
-                            EC.presence_of_element_located(
-                                (AppiumBy.XPATH, thr_product_type)
-                            )
-                        )
-                        product.click()
-                    except TimeoutException:
-                        try:
-                            fourt_product_type = '//android.webkit.WebView[@text="Amazon.ca"]/android.view.View/android.view.View/android.view.View[2]'
-                            product = WebDriverWait(self.driver, 6).until(
-                                EC.presence_of_element_located(
-                                    (AppiumBy.XPATH, fourt_product_type)
-                                )
-                            )
-                            product.click()
-                        except TimeoutException:
-                            print(
-                                "Failed to find and click the product element after several attempts"
-                            )
-                            return {
-                                "status": "failed",
-                                "msg": "Reached max attempts for trying! No product found",
-                            }
-            # Get ASIN from page source
-            clipboard_text = self.share_finder('//android.widget.Image[@text="Share"]')
-            asin = get_asin_from_text(clipboard_text)
-            self.tearDown()
+            # Get ASIN from traffic
             opens += 1
-
+            asin = get_asin_from_response()
+            # self.driver.back()
+            # self.driver.back()
+            # self.driver.press_keycode(4)
+            # self.driver.press_keycode(4)
+            self.tearDown()
+        
             if asin:
                 return {"status": "success", "code": asin}
             else:
@@ -355,26 +200,37 @@ class runAndroidAutomation:
             return {"status": "failed", "msg": f"Error1: Asin Not Found"}
 
 
-# Replace these with your actual username and password
-username = os.getenv("GENYMOTION_USERNAME")
-password = os.getenv("GENYMOTION_PASSWORD")
-genymotion_ip_address = os.getenv("GENYMOTION_INSTANCE_IP")
-
-
-def image_injection(image_b):
-    url = f"https://{genymotion_ip_address}/api/v1/camera/image"
-    auth = (username, password)
-    headers = {"accept": "application/json", "Content-Type": "image/*"}
-    response = requests.put(url, auth=auth, headers=headers, data=image_b, verify=False)
-
-    if response.status_code == 200:
-        return {
-            "status": "success",
-            "msg": "Congrats! Image updated on Genymotion Emulator",
-        }
-    else:
-        return {"status": "failed", "msg": f"Response Content: {response}"}
-
+def get_asin_from_response():
+    url = "https://de64-173-206-79-16.ngrok-free.app/get_response"  # Change to your actual Flask server URL if different
+    
+    try:
+        response = requests.get(url)
+        
+        if response.status_code == 200:
+            # Successful request, JSON data returned
+            data = response.json()
+            print("Fetched response JSON data:")
+            print(data)
+            # Navigate through the JSON structure to get the converted barcodes (ASIN)
+            try:
+                search_result = data['occipital']['searchResult']
+                if search_result:
+                    asin = search_result[0]['properties']['convertedBarcodes'][0]
+                    print(f"ASIN: {asin}")
+                    return asin
+                else:
+                    print("No search result found.")
+                    return None
+            except KeyError as e:
+                print(f"Key not found: {e}")
+                return None
+        elif response.status_code == 404:
+            print("No data found at the endpoint.")
+        else:
+            print(f"Error: Received status code {response.status_code}")
+    
+    except requests.exceptions.RequestException as e:
+        print(f"An error occurred: {e}")
 
 def fetch_barcode(data, dpi=444):
     base_url = "https://barcode.tec-it.com/barcode.ashx"
@@ -384,8 +240,8 @@ def fetch_barcode(data, dpi=444):
         "translate-esc": "on",
         "unit": "Fit",
         "imagetype": "Png",
-        "rotation": 90,
-        "dpi": 333,
+        "rotation": 0,
+        "dpi": 222,
     }
     response = requests.get(base_url, params=params)
 
@@ -429,127 +285,8 @@ def fetch_barcode(data, dpi=444):
         return {"status": "failed", "msg": f"Response Content: {response}"}
 
 
-def fetch_barcode_old(data, dpi=444):
-    base_url = "https://barcode.tec-it.com/barcode.ashx"
-    params = {
-        "data": data,
-        "code": "Code128",
-        "translate-esc": "on",
-        "unit": "Fit",
-        "imagetype": "Png",
-        "rotation": 90,
-        "dpi": 444,
-    }
-    response = requests.get(base_url, params=params)
-
-    if response.status_code == 200:
-        barcode_image = Image.open(BytesIO(response.content))
-        # barcode_image = barcode_image.resize((155, 350))
-        # Rotate the background image 270 degrees
-        # barcode_image = barcode_image.rotate(90)
-        # barcode_image = barcode_image.resize((35, 120))
-        # Create a white background image
-        background = Image.new("RGB", (1400, 1100), "white")
-
-        # Calculate the position to center the barcode image on the background
-        position = (
-            (background.width - barcode_image.width) // 2,
-            (background.height - barcode_image.height) // 2,
-        )
-
-        # Paste the barcode image onto the background
-        background.paste(barcode_image, position)
-        # background = background.resize((500, 216))
-
-        # Convert the final image to bytes
-        byte_arr = BytesIO()
-        background.save(byte_arr, format="PNG")
-        background_bytes = byte_arr.getvalue()
-        # Load the image from bytes
-        image = Image.open(BytesIO(background_bytes))
-
-        # Rotate the image (e.g., 90 degrees)
-        rotated_image = image.rotate(360, expand=True)
-
-        # Save the rotated image back to bytes
-        rotated_byte_arr = BytesIO()
-        rotated_image.save(rotated_byte_arr, format="PNG")
-        rotated_background_bytes = rotated_byte_arr.getvalue()
-        # image_injection(rotated_background_bytes)
-        print("Barcode image saved as 'barcode.png'")
-        return {
-            "status": "success",
-            "msg": "Congrats! Image updated on Genymotion Emulator",
-        }
-    else:
-        print(f"Failed to fetch barcode. Status code: {response.status_code}")
-        return {"status": "failed", "msg": f"Response Content: {response}"}
 
 
-def expand_url(short_url):
-    try:
-        response = requests.get(short_url, allow_redirects=True)
-        return response.url
-    except requests.RequestException as e:
-        print(f"Error expanding URL: {e}")
-        return None
-
-
-def extract_asin_from_url(url):
-    # Define a regex pattern to match the ASIN in the expanded URL
-    pattern = r"/([A-Za-z0-9]{10})(?:[/?]|$)"
-
-    # Search for the pattern in the given URL
-    match = re.search(pattern, url)
-    # If a match is found, extract the ASIN
-    if match:
-        asin = match.group(1)
-        return asin
-    else:
-        return None
-
-
-def get_asin_from_text(text):
-    try:
-        # First, try to find a short URL in the text
-        short_url_pattern = r"https://a\.co/d/[A-Za-z0-9]+"
-        short_url_match = re.search(short_url_pattern, text)
-
-        print("Shared URL of the product: ", text)
-        if short_url_match:
-            short_url = short_url_match.group(0)
-            expanded_url = expand_url(short_url)
-            if expanded_url:
-                asin = extract_asin_from_url(expanded_url)
-                if asin:
-                    print("ASIN from short URL: ", asin)
-                    return asin
-                else:
-                    raise Exception
-            else:
-                raise Exception
-        else:
-            raise Exception
-            # If expanding the short URL doesn't work, we still try the next pattern
-    except Exception as e:
-        print("trying full amazon url")
-        try:
-            # If no short URL found or URL expansion didn't work, try the full Amazon URL pattern
-            amazon_url_pattern = r"https://www\.amazon\.ca+/dp/([A-Z0-9]+)"
-            amazon_url_match = re.search(amazon_url_pattern, text)
-
-            if amazon_url_match:
-                full_url = amazon_url_match.group(1)
-                print("Here is the full url: ", full_url)
-                asin = extract_asin_from_url(full_url)
-                asin = full_url
-                if asin:
-                    print("ASIN from full URL: ", asin)
-                    return asin
-        except Exception as e:
-            print("not worked")
-            # If neither pattern matches, return None
-            return None
 
 
 from serpapi import GoogleSearch
