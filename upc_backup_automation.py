@@ -1,82 +1,50 @@
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import (
-    WebDriverException,
-    TimeoutException,
-    NoSuchElementException,
-)
 import os
 import requests
 import json
+from bs4 import BeautifulSoup
+from dotenv import load_dotenv
 
+load_dotenv()
 
 def get_product_info_selenium(upc_code):
     # URL construction
     url = f"https://www.barcodelookup.com/{upc_code}"
+    apikey = os.getenv("ZENROWS_API_KEY")
+    params = {
+        'url': url,
+        'apikey': apikey,
+        'js_render': 'true',
+        'wait': '2000',
+        'premium_proxy': 'true',
+    }
 
-    # Path to your ChromeDriver executable
-    chrome_driver_path = "./chromedriver.exe"  # Update this to your ChromeDriver path
-
-    # Setup Chrome options to behave like a regular browser
-    chrome_options = Options()
-    # chrome_options.add_argument(
-    #     "--headless"
-    # )  # Uncomment if you want to run headless
-    chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument("--no-sandbox")
-
-    # Create a new instance of Chrome
-    service = Service(chrome_driver_path)
-    driver = webdriver.Chrome(service=service, options=chrome_options)
 
     try:
-        # Open the URL
-        driver.get(url)
+
+        response = requests.get('https://api.zenrows.com/v1/', params=params)
+        # Parse the HTML response
+        soup = BeautifulSoup(response.text, 'html.parser')
 
         # Try to find the product title element
-        try:
-            title_element = WebDriverWait(driver, 5).until(
-                EC.presence_of_element_located((By.TAG_NAME, "h4"))
-            )
-            product_title = title_element.text.strip()
-        except (TimeoutException, NoSuchElementException):
-            # If the title is not found, return None since it's required
-            return None
+        # Extract the first h4 tag's text value
+        h4_tag = soup.find('h4')
+        product_title = h4_tag.text.strip() if h4_tag else None
 
         # Try to find the product image element
-        try:
-            image_element = WebDriverWait(driver, 5).until(
-                EC.presence_of_element_located((By.ID, "largeProductImage"))
-            )
-            image_url = image_element.find_element(By.TAG_NAME, "img").get_attribute(
-                "src"
-            )
-        except (TimeoutException, NoSuchElementException):
-            image_url = None
+        # Get the image src by its ID "largeProductImage"
+        img_element = soup.find(id='largeProductImage')
+        img_tag = img_element.find('img')
+        image_url = img_tag['src'] if img_tag else None
 
         # Try to find the product description element
-        try:
-            description_element = WebDriverWait(driver, 5).until(
-                EC.presence_of_element_located(
-                    (By.CSS_SELECTOR, "div.product-meta-data span.product-text")
-                )
-            )
-            product_description = description_element.text.strip()
-        except (TimeoutException, NoSuchElementException):
-            product_description = None
+        # Extract text using the CSS selector "div.product-meta-data span.product-text"
+        product_text = soup.select_one('div.product-meta-data span.product-text')
+        product_description = product_text.text.strip() if product_text else None
 
         # Try to find the product price (MSRP) element
-        try:
-            price_element = WebDriverWait(driver, 5).until(
-                EC.presence_of_element_located((By.CLASS_NAME, "store-link"))
-            )
-            product_price = price_element.text.strip()
-        except (TimeoutException, NoSuchElementException):
-            product_price = None
+        # Get the first price by class name "store-link"
+        price_tag = soup.find('span', class_='store-link')
+        product_price = price_tag.text.strip() if price_tag else None
 
         # Print out the extracted information
         print(f"Product Title: {product_title}")
@@ -144,19 +112,10 @@ def get_product_info_selenium(upc_code):
         print("An error occurred: ", str(e))
         return f"An error occurred: {str(e)}"
 
-    finally:
-        try:
-            driver.delete_all_cookies()
-            driver.quit()
-            # Ensure the underlying Chrome process is also terminated
-            if driver.service.process:
-                driver.service.process.terminate()
-        except WebDriverException as e:
-            print(f"Error during cleanup: {str(e)}")
 
 
-# # Example usage:
-# upc_code = "0056500372994"
-# upc_code = "056500370389"
-# product_info = get_product_info_selenium(upc_code)
-# print(product_info)
+# Example usage:
+upc_code = "0056500372994"
+upc_code = "056500370389"
+product_info = get_product_info_selenium(upc_code)
+print(product_info)
