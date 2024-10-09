@@ -115,7 +115,7 @@ def get_product_info_selenium(upc_code):
 
 
 # Example usage:
-upc_code = "0056500372994"
-upc_code = "056500370389"
-product_info = get_product_info_selenium(upc_code)
-print(product_info)
+# upc_code = "0056500372994"
+# upc_code = "056500370389"
+# product_info = get_product_info_selenium(upc_code)
+# print(product_info)
