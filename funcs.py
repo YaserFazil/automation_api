@@ -11,8 +11,7 @@ import os
 from io import BytesIO
 from PIL import Image
 import requests
-import re
-import random
+
 
 load_dotenv()
 
