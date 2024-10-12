@@ -610,6 +610,7 @@ def product_scraper():
             product_code in results
             and results[product_code]
             and results[product_code][0] != "No ASIN found"
+            and len(results[product_code][0]) == 1
         ):
             asin = results[product_code][0]
         else:
