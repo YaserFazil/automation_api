@@ -885,4 +885,4 @@ def insert_products_mementodb(
 if __name__ == "__main__":
     # Start mitmdump in the background
     start_mitmdump_in_background()
-    app.run(debug=True, host='localhost')
+    app.run(debug=True)
