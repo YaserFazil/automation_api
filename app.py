@@ -119,7 +119,7 @@ def get_response():
 
 # Function to run mitmdump as a background process
 def run_mitmproxy():
-    subprocess.call(['mitmdump', '-q', '--mode', 'regular@127.0.0.1:8082', '-s', './test.py'])  # Use the correct script path
+    subprocess.call(['mitmdump', '-q', '--mode', 'regular@localhost:8082', '-s', './test.py'])  # Use the correct script path
 
 
 # Running mitmdump in a separate thread
