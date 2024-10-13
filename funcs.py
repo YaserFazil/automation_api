@@ -185,7 +185,7 @@ class runAndroidAutomation:
             # self.driver.back()
             # self.driver.press_keycode(4)
             # self.driver.press_keycode(4)
-            self.tearDown()
+            # self.tearDown()
         
             if asin:
                 return {"status": "success", "code": asin}
@@ -196,17 +196,52 @@ class runAndroidAutomation:
             opens += 1
             print(f"Error1: {e}")
             return {"status": "failed", "msg": f"Error1: Asin Not Found"}
-
-
-def get_asin_from_response():
-    url = "https://de64-173-206-79-16.ngrok-free.app/get_response"  # Change to your actual Flask server URL if different
-    
-    try:
-        response = requests.get(url)
         
-        if response.status_code == 200:
+        finally:
+            # self.driver.press_keycode(4)
+            # self.driver.press_keycode(4)
+            self.tearDown()            
+
+import time
+from threading import Lock
+import json
+lock_response = Lock()
+# Flask route to fetch the saved JSON file
+def get_json_response():
+    with lock_response:
+        json_file_path = os.path.join('./', 'response.json')
+        
+        # Check if the file exists
+        if os.path.exists(json_file_path):
+            max_attempts = 3
+            attempts = 0
+            # Wait until the file is not empty
+            while attempts < max_attempts:
+                # Check the file size
+                if os.path.getsize(json_file_path) > 0:
+                    with open(json_file_path, 'r', encoding='utf-8') as json_file:
+                        data = json.load(json_file)
+                    
+                    # Empty the JSON file after reading its content
+                    with open(json_file_path, 'w', encoding='utf-8') as json_file:
+                        json_file.truncate(0)  # Clear the contents of the file
+                    
+                    return data
+                else:
+                    # If the file is empty, wait for 3 seconds before checking again
+                    time.sleep(3)
+                    attempts+=1
+        else:
+            return {"error": "No data found"}
+
+
+def get_asin_from_response():    
+    try:
+        response = get_json_response()
+        
+        if "error" not in response:
             # Successful request, JSON data returned
-            data = response.json()
+            data = response
             print("Fetched response JSON data:")
             print(data)
             # Navigate through the JSON structure to get the converted barcodes (ASIN)
@@ -222,10 +257,8 @@ def get_asin_from_response():
             except KeyError as e:
                 print(f"Key not found: {e}")
                 return None
-        elif response.status_code == 404:
-            print("No data found at the endpoint.")
         else:
-            print(f"Error: Received status code {response.status_code}")
+            print(f"Error: no data recieved")
     
     except requests.exceptions.RequestException as e:
         print(f"An error occurred: {e}")
