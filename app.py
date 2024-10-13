@@ -16,7 +16,10 @@ import json
 import datetime
 from chatgpt import *
 from upc_backup_automation import *
+from mitmproxy import http
 
+import threading
+import subprocess
 load_dotenv()
 
 app = Flask(__name__)
@@ -38,6 +41,92 @@ PUBLIC_BUCKET_URL = os.getenv("PUBLIC_BUCKET_URL")
 canada_lock = Lock()  # Lock for Canadian automation
 usa_lock = Lock()     # Lock for USA automation
 
+
+# Decoding helper function
+def decode_content(content):
+    """Attempt to decode the content using various encodings."""
+    encodings = ['utf-8', 'ISO-8859-1', 'latin1']
+    for enc in encodings:
+        try:
+            return content.decode(enc), enc
+        except UnicodeDecodeError:
+            continue
+    return None, None  # If none of the encodings work, return None
+
+# Interception and JSON saving function
+def response(flow: http.HTTPFlow) -> None:
+    # Check if the request is to the desired endpoint
+    if "match-visualsearch-ca.amazon.com" in flow.request.url:
+        # Intercepting and logging responses
+        print(f"\n[RESPONSE] {flow.request.url}")
+        print(f"Status Code: {flow.response.status_code}")
+        print(f"Headers: {flow.response.headers}")
+        
+        # Try to decode the response body
+        decoded_body, encoding = decode_content(flow.response.content)
+        if decoded_body:
+            print(f"Response Body (decoded with {encoding}): {decoded_body}")
+            
+            # Attempt to parse the decoded body as JSON
+            try:
+                json_data = json.loads(decoded_body)  # Ensure it's in a JSON format
+                # Define the path where you want to save the JSON file
+                json_file_path = os.path.join('./', 'response.json')
+                
+                # Empty the file before writing (open in 'w' mode truncates the file)
+                with open(json_file_path, 'w', encoding='utf-8') as json_file:
+                    # Save the JSON data to the file
+                    json.dump(json_data, json_file, ensure_ascii=False, indent=4)
+                
+                print(f"JSON saved to {json_file_path}")
+            except json.JSONDecodeError:
+                print("Failed to decode response body as JSON")
+        else:
+            print(f"Response Body: Could not decode, binary content detected")
+
+import time
+from threading import Lock
+lock_response = Lock()
+# Flask route to fetch the saved JSON file
+@app.route('/get_response', methods=['GET'])
+def get_response():
+    with lock_response:
+        json_file_path = os.path.join('./', 'response.json')
+        
+        # Check if the file exists
+        if os.path.exists(json_file_path):
+            max_attempts = 3
+            attempts = 0
+            # Wait until the file is not empty
+            while attempts < max_attempts:
+                # Check the file size
+                if os.path.getsize(json_file_path) > 0:
+                    with open(json_file_path, 'r', encoding='utf-8') as json_file:
+                        data = json.load(json_file)
+                    
+                    # Empty the JSON file after reading its content
+                    with open(json_file_path, 'w', encoding='utf-8') as json_file:
+                        json_file.truncate(0)  # Clear the contents of the file
+                    
+                    return jsonify(data), 200
+                else:
+                    # If the file is empty, wait for 3 seconds before checking again
+                    time.sleep(3)
+                    attempts+=1
+        else:
+            return jsonify({"error": "No data found"}), 404
+
+
+# Function to run mitmdump as a background process
+def run_mitmproxy():
+    subprocess.call(['mitmdump', '-q', '-s', './test.py'])  # Use the correct script path
+
+
+# Running mitmdump in a separate thread
+def start_mitmdump_in_background():
+    mitmproxy_thread = threading.Thread(target=run_mitmproxy)
+    mitmproxy_thread.daemon = True  # Allows the thread to close when the Flask app exits
+    mitmproxy_thread.start()
 
 # Upload images in {username}/images folder in AWS S3 Bucket
 @app.route("/upload", methods=["POST"])
@@ -794,4 +883,6 @@ def insert_products_mementodb(
 
 
 if __name__ == "__main__":
+    # Start mitmdump in the background
+    start_mitmdump_in_background()
     app.run(debug=True, host="0.0.0.0")
