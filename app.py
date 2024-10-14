@@ -396,7 +396,7 @@ def fnsku_to_asin_logic(fnskus):
         for fnsku in fnskus:
             try:
                 print("FNSKU: ", fnsku)
-                fetch_barcode(fnsku)
+                # fetch_barcode(fnsku)
                 automation = runAndroidAutomation()
                 automation.setUp()
                 max_attempts = 1
