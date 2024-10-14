@@ -41,79 +41,79 @@ opens = 0
 
 
 class runAndroidAutomation:
-    def setUp(self) -> None:
-        self.driver = webdriver.Remote(
-            appium_server_url,
-            options=UiAutomator2Options().load_capabilities(capabilities),
-        )
+    # def setUp(self) -> None:
+    #     self.driver = webdriver.Remote(
+    #         appium_server_url,
+    #         options=UiAutomator2Options().load_capabilities(capabilities),
+    #     )
 
-    def share_finder(self, share_xpath=share_action):
-        asin = None
-        max_attempts = 3
-        attempts = 0
+    # def share_finder(self, share_xpath=share_action):
+    #     asin = None
+    #     max_attempts = 3
+    #     attempts = 0
 
-        while attempts < max_attempts:
-            attempts += 1
-            asin = self.get_text_from_clipboard(share_xpath)
-            if asin:
-                break
+    #     while attempts < max_attempts:
+    #         attempts += 1
+    #         asin = self.get_text_from_clipboard(share_xpath)
+    #         if asin:
+    #             break
 
-        return asin
+    #     return asin
 
-    def get_text_from_clipboard(self, share_xpath):
-        try:
-            # Wait for the share icon to load (adjust the timeout and CSS selector as needed)
-            share_icon = WebDriverWait(self.driver, 6).until(
-                EC.presence_of_element_located((AppiumBy.XPATH, share_xpath))
-            )
-            share_icon.click()
-            copy_icon = WebDriverWait(self.driver, 6).until(
-                EC.presence_of_element_located((AppiumBy.XPATH, copy_clipboard))
-            )
-            copy_icon.click()
-            clipboard = self.driver.get_clipboard_text()
-            print("Clipboard Text: ", clipboard)
-            return clipboard
-        except TimeoutException:
-            print(
-                "TimeoutException at get_text_from_clipboard function. No share or copy icon found in 6 seconds!"
-            )
-            return None
-        except Exception as e:
-            print("Error while running get_text_from_clipboard function: ", e)
-            return None
+    # def get_text_from_clipboard(self, share_xpath):
+    #     try:
+    #         # Wait for the share icon to load (adjust the timeout and CSS selector as needed)
+    #         share_icon = WebDriverWait(self.driver, 6).until(
+    #             EC.presence_of_element_located((AppiumBy.XPATH, share_xpath))
+    #         )
+    #         share_icon.click()
+    #         copy_icon = WebDriverWait(self.driver, 6).until(
+    #             EC.presence_of_element_located((AppiumBy.XPATH, copy_clipboard))
+    #         )
+    #         copy_icon.click()
+    #         clipboard = self.driver.get_clipboard_text()
+    #         print("Clipboard Text: ", clipboard)
+    #         return clipboard
+    #     except TimeoutException:
+    #         print(
+    #             "TimeoutException at get_text_from_clipboard function. No share or copy icon found in 6 seconds!"
+    #         )
+    #         return None
+    #     except Exception as e:
+    #         print("Error while running get_text_from_clipboard function: ", e)
+    #         return None
 
-    def tearDown(self) -> None:
-        if self.driver:
-            self.driver.quit()
+    # def tearDown(self) -> None:
+    #     if self.driver:
+    #         self.driver.quit()
 
-    def reopen_app(self) -> None:
-        try:
-            app_terminated = self.driver.terminate_app(
-                "com.amazon.mShop.android.shopping"
-            )
-            if app_terminated:
-                open_app = WebDriverWait(self.driver, 3).until(
-                    EC.presence_of_element_located(
-                        (
-                            AppiumBy.XPATH,
-                            '//android.widget.TextView[@content-desc="Amazon Shopping"]',
-                        )
-                    )
-                )
-                open_app.click()
-                sleep(2)
-                return True
-            else:
-                return False
-        except TimeoutException:
-            print(
-                "TimeoutException while opening the Amazon Shopping app. No Amazon Shopping app found in 6 seconds!"
-            )
-            return False
-        except Exception as e:
-            print("Exception while closing the app: ", e)
-            return False
+    # def reopen_app(self) -> None:
+    #     try:
+    #         app_terminated = self.driver.terminate_app(
+    #             "com.amazon.mShop.android.shopping"
+    #         )
+    #         if app_terminated:
+    #             open_app = WebDriverWait(self.driver, 3).until(
+    #                 EC.presence_of_element_located(
+    #                     (
+    #                         AppiumBy.XPATH,
+    #                         '//android.widget.TextView[@content-desc="Amazon Shopping"]',
+    #                     )
+    #                 )
+    #             )
+    #             open_app.click()
+    #             sleep(2)
+    #             return True
+    #         else:
+    #             return False
+    #     except TimeoutException:
+    #         print(
+    #             "TimeoutException while opening the Amazon Shopping app. No Amazon Shopping app found in 6 seconds!"
+    #         )
+    #         return False
+    #     except Exception as e:
+    #         print("Exception while closing the app: ", e)
+    #         return False
 
     def start_canada(self, fnsku) -> None:
         global max_opens
@@ -197,10 +197,10 @@ class runAndroidAutomation:
             print(f"Error1: {e}")
             return {"status": "failed", "msg": f"Error1: Asin Not Found"}
         
-        finally:
-            # self.driver.press_keycode(4)
-            # self.driver.press_keycode(4)
-            self.tearDown()            
+        # finally:
+        #     # self.driver.press_keycode(4)
+        #     # self.driver.press_keycode(4)
+        #     self.tearDown()            
 
 import time
 from threading import Lock
