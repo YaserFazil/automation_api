@@ -120,60 +120,60 @@ class runAndroidAutomation:
         global opens
 
         try:
-            # Reopen the app if the max number of opens is reached
-            if opens == max_opens:
-                if self.reopen_app():
-                    opens = 0
+            # # Reopen the app if the max number of opens is reached
+            # if opens == max_opens:
+            #     if self.reopen_app():
+            #         opens = 0
 
-            # Try to click on the camera icon to take a picture
-            try:
-                take_pic = WebDriverWait(self.driver, 6).until(
-                    EC.presence_of_element_located(
-                        (
-                            AppiumBy.XPATH,
-                            '//android.widget.ImageView[@resource-id="com.amazon.mShop.android.shopping:id/chrome_action_bar_camera_icon"]',
-                        )
-                    )
-                )
-                take_pic.click()
-            except TimeoutException:
-                print(
-                    "TimeoutException while taking pic. No Camera Icon found in 6 seconds!"
-                )
-                if self.reopen_app():
-                    opens = 0
-                    take_pic = WebDriverWait(self.driver, 6).until(
-                        EC.presence_of_element_located(
-                            (
-                                AppiumBy.XPATH,
-                                '//android.widget.ImageView[@resource-id="com.amazon.mShop.android.shopping:id/chrome_action_bar_camera_icon"]',
-                            )
-                        )
-                    )
-                    take_pic.click()
-            except Exception:
-                if self.reopen_app():
-                    opens = 0
-                    take_pic = WebDriverWait(self.driver, 6).until(
-                        EC.presence_of_element_located(
-                            (
-                                AppiumBy.XPATH,
-                                '//android.widget.ImageView[@resource-id="com.amazon.mShop.android.shopping:id/chrome_action_bar_camera_icon"]',
-                            )
-                        )
-                    )
-                    take_pic.click()
+            # # Try to click on the camera icon to take a picture
+            # try:
+            #     take_pic = WebDriverWait(self.driver, 6).until(
+            #         EC.presence_of_element_located(
+            #             (
+            #                 AppiumBy.XPATH,
+            #                 '//android.widget.ImageView[@resource-id="com.amazon.mShop.android.shopping:id/chrome_action_bar_camera_icon"]',
+            #             )
+            #         )
+            #     )
+            #     take_pic.click()
+            # except TimeoutException:
+            #     print(
+            #         "TimeoutException while taking pic. No Camera Icon found in 6 seconds!"
+            #     )
+            #     if self.reopen_app():
+            #         opens = 0
+            #         take_pic = WebDriverWait(self.driver, 6).until(
+            #             EC.presence_of_element_located(
+            #                 (
+            #                     AppiumBy.XPATH,
+            #                     '//android.widget.ImageView[@resource-id="com.amazon.mShop.android.shopping:id/chrome_action_bar_camera_icon"]',
+            #                 )
+            #             )
+            #         )
+            #         take_pic.click()
+            # except Exception:
+            #     if self.reopen_app():
+            #         opens = 0
+            #         take_pic = WebDriverWait(self.driver, 6).until(
+            #             EC.presence_of_element_located(
+            #                 (
+            #                     AppiumBy.XPATH,
+            #                     '//android.widget.ImageView[@resource-id="com.amazon.mShop.android.shopping:id/chrome_action_bar_camera_icon"]',
+            #                 )
+            #             )
+            #         )
+            #         take_pic.click()
 
-            # Click on the barcode icon
-            barcode = WebDriverWait(self.driver, 6).until(
-                EC.presence_of_element_located(
-                    (
-                        AppiumBy.XPATH,
-                        '(//android.widget.ImageView[@resource-id="com.amazon.mShop.android.shopping:id/secondary_mode_image"])[3]',
-                    )
-                )
-            )
-            barcode.click()
+            # # Click on the barcode icon
+            # barcode = WebDriverWait(self.driver, 6).until(
+            #     EC.presence_of_element_located(
+            #         (
+            #             AppiumBy.XPATH,
+            #             '(//android.widget.ImageView[@resource-id="com.amazon.mShop.android.shopping:id/secondary_mode_image"])[3]',
+            #         )
+            #     )
+            # )
+            # barcode.click()
 
 
 
