@@ -398,7 +398,7 @@ def fnsku_to_asin_logic(fnskus):
                 print("FNSKU: ", fnsku)
                 # fetch_barcode(fnsku)
                 automation = runAndroidAutomation()
-                automation.setUp()
+                # automation.setUp()
                 max_attempts = 1
                 attempts = 0
                 asin = {"status": "None", "msg": "Initial attempt"}
