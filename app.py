@@ -8,23 +8,17 @@ import zipfile
 import smtplib
 from email.mime.text import MIMEText
 from dotenv import load_dotenv
-from funcs import runAndroidAutomation, fetch_barcode, glens_results
-from threading import Lock
+from funcs import *
 from decorators import check_api
 import requests
 import json
 import datetime
 from chatgpt import *
 from upc_backup_automation import *
-from mitmproxy import http
-
-import threading
-import subprocess
 load_dotenv()
 
 app = Flask(__name__)
 
-lock = Lock()
 # Initialize S3 client
 s3 = boto3.client("s3", region_name="ca-central-1")
 
@@ -38,95 +32,8 @@ COMPRESSION_SPEED_MB_PER_SEC = 1500
 
 PUBLIC_BUCKET_URL = os.getenv("PUBLIC_BUCKET_URL")
 
-canada_lock = Lock()  # Lock for Canadian automation
-usa_lock = Lock()     # Lock for USA automation
 
 
-# # Decoding helper function
-# def decode_content(content):
-#     """Attempt to decode the content using various encodings."""
-#     encodings = ['utf-8', 'ISO-8859-1', 'latin1']
-#     for enc in encodings:
-#         try:
-#             return content.decode(enc), enc
-#         except UnicodeDecodeError:
-#             continue
-#     return None, None  # If none of the encodings work, return None
-
-# # Interception and JSON saving function
-# def response(flow: http.HTTPFlow) -> None:
-#     # Check if the request is to the desired endpoint
-#     if "match-visualsearch-ca.amazon.com" in flow.request.url:
-#         # Intercepting and logging responses
-#         print(f"\n[RESPONSE] {flow.request.url}")
-#         print(f"Status Code: {flow.response.status_code}")
-#         print(f"Headers: {flow.response.headers}")
-        
-#         # Try to decode the response body
-#         decoded_body, encoding = decode_content(flow.response.content)
-#         if decoded_body:
-#             print(f"Response Body (decoded with {encoding}): {decoded_body}")
-            
-#             # Attempt to parse the decoded body as JSON
-#             try:
-#                 json_data = json.loads(decoded_body)  # Ensure it's in a JSON format
-#                 # Define the path where you want to save the JSON file
-#                 json_file_path = os.path.join('./', 'response.json')
-                
-#                 # Empty the file before writing (open in 'w' mode truncates the file)
-#                 with open(json_file_path, 'w', encoding='utf-8') as json_file:
-#                     # Save the JSON data to the file
-#                     json.dump(json_data, json_file, ensure_ascii=False, indent=4)
-                
-#                 print(f"JSON saved to {json_file_path}")
-#             except json.JSONDecodeError:
-#                 print("Failed to decode response body as JSON")
-#         else:
-#             print(f"Response Body: Could not decode, binary content detected")
-
-import time
-from threading import Lock
-lock_response = Lock()
-# Flask route to fetch the saved JSON file
-@app.route('/get_response', methods=['GET'])
-def get_response():
-    with lock_response:
-        json_file_path = os.path.join('./', 'response.json')
-        
-        # Check if the file exists
-        if os.path.exists(json_file_path):
-            max_attempts = 3
-            attempts = 0
-            # Wait until the file is not empty
-            while attempts < max_attempts:
-                # Check the file size
-                if os.path.getsize(json_file_path) > 0:
-                    with open(json_file_path, 'r', encoding='utf-8') as json_file:
-                        data = json.load(json_file)
-                    
-                    # Empty the JSON file after reading its content
-                    with open(json_file_path, 'w', encoding='utf-8') as json_file:
-                        json_file.truncate(0)  # Clear the contents of the file
-                    
-                    return jsonify(data), 200
-                else:
-                    # If the file is empty, wait for 3 seconds before checking again
-                    time.sleep(3)
-                    attempts+=1
-        else:
-            return jsonify({"error": "No data found"}), 404
-
-
-# Function to run mitmdump as a background process
-def run_mitmproxy():
-    subprocess.call(['mitmdump', '-q', '-s', './test.py'])  # Use the correct script path
-
-
-# Running mitmdump in a separate thread
-def start_mitmdump_in_background():
-    mitmproxy_thread = threading.Thread(target=run_mitmproxy)
-    mitmproxy_thread.daemon = True  # Allows the thread to close when the Flask app exits
-    mitmproxy_thread.start()
 
 # Upload images in {username}/images folder in AWS S3 Bucket
 @app.route("/upload", methods=["POST"])
@@ -372,62 +279,59 @@ def hello_world():
 
 
 def fnsku_to_asin_logic_us_amz(product_code, entry_id, memento_lib_id, memento_token):
-    with usa_lock:
-        # Define the endpoint
-        url = f"{os.getenv('NGROK_US_LAPTOP_ENDPOINT')}/product-scraper"
+    # Define the endpoint
+    url = f"{os.getenv('NGROK_US_LAPTOP_ENDPOINT')}/product-scraper"
 
-        # Define the parameters for the GET request
-        params = {
-            "product_code": product_code,
-            "entryId": entry_id,
-            "memento_lib_id": memento_lib_id,
-            "mementoToken": memento_token,
-        }
+    # Define the parameters for the GET request
+    params = {
+        "product_code": product_code,
+        "entryId": entry_id,
+        "memento_lib_id": memento_lib_id,
+        "mementoToken": memento_token,
+    }
 
-        # Make the GET request with the parameters
-        response = requests.get(url, params=params)
+    # Make the GET request with the parameters
+    response = requests.get(url, params=params)
 
-        return response.status_code
+    return response.status_code
 
 
 def fnsku_to_asin_logic(fnskus):
-    with canada_lock:
-        results = []
-        for fnsku in fnskus:
-            try:
-                print("FNSKU: ", fnsku)
-                # fetch_barcode(fnsku)
-                automation = runAndroidAutomation()
-                # automation.setUp()
-                max_attempts = 1
-                attempts = 0
-                asin = {"status": "None", "msg": "Initial attempt"}
-                while attempts < max_attempts and asin["status"] != "success":
-                    asin = automation.start_canada(fnsku)
-                    attempts += 1
-                    if asin["status"] == "success":
-                        results.append(
-                            {
-                                "status": "success",
-                                "msg": "Congrats! Your FNSKU code converted to ASIN",
-                                "asin": asin["code"],
-                                "fnsku": fnsku,
-                            }
-                        )
-                        break
-                    elif attempts >= max_attempts:
-                        results.append(
-                            {
-                                "status": "failed",
-                                "msg": f"Error: {asin['msg']}",
-                                "fnsku": fnsku,
-                            }
-                        )
-            except Exception as e:
-                results.append(
-                    {"status": "failed", "msg": f"Error: {e}", "fnsku": fnsku}
-                )
-        return results
+    results = []
+    for fnsku in fnskus:
+        try:
+            print("FNSKU: ", fnsku)
+            max_attempts = 1
+            attempts = 0
+            asin = {"status": "None", "msg": "Initial attempt"}
+            while attempts < max_attempts and asin["status"] != "success":
+                # Get ASIN from traffic
+                asin = search_barcode(fnsku)
+                attempts += 1
+                if asin["status"] == "success":
+                    results.append(
+                        {
+                            "status": "success",
+                            "msg": "Congrats! Your FNSKU code converted to ASIN",
+                            "asin": asin["code"],
+                            "asin_country": asin["country"],
+                            "fnsku": fnsku,
+                        }
+                    )
+                    break
+                elif attempts >= max_attempts:
+                    results.append(
+                        {
+                            "status": "failed",
+                            "msg": f"Error: {asin['msg']}",
+                            "fnsku": fnsku,
+                        }
+                    )
+        except Exception as e:
+            results.append(
+                {"status": "failed", "msg": f"Error: {e}", "fnsku": fnsku}
+            )
+    return results
 
 
 def upc_to_asin_logic(code):
@@ -604,6 +508,25 @@ def product_scraperapi(asin):
     return results
 
 
+import requests
+import json
+
+def get_field_ids(memento_lib_id, memento_entryid, memento_token):
+    """
+    Retrieves the dynamic field IDs for a given Memento library.
+    """
+    try:
+        url = f"https://api.mementodatabase.com/v1/libraries/{memento_lib_id}/entries/{memento_entryid}?token={memento_token}"
+        response = requests.get(url)
+        data = response.json()
+        print(data)
+        # Create a mapping of field names to their dynamic IDs
+        field_ids = {field["name"]: field["id"] for field in data.get("fields", [])}
+        return field_ids
+    except Exception as e:
+        print("Error retrieving field IDs:", e)
+        return {}
+
 def update_memento_entry(
     memento_lib_id,
     memento_token,
@@ -614,36 +537,49 @@ def update_memento_entry(
     entry_description="",
     scrape_status="Scrape Failed",
 ):
+    print("start entry image: ", entry_image)
     try:
-        url = f"https://api.mementodatabase.com/v1/libraries/{memento_lib_id}/entries/{memento_entryid}?token={memento_token}"
+        # Fetch the dynamic field IDs
+        field_ids = get_field_ids(memento_lib_id, memento_entryid, memento_token)
+        
+        # If no field IDs were found, return false
+        if not field_ids:
+            return False
+
         # Determine scrape status based on the entry_title
-        # scrape_status = "Scrape Failed" if entry_title == "" else "Scrape Successful"
         if entry_title != "":
             scrape_status = "Scrape Successful"
+        
+        # Dynamically assign the field IDs using the fetched ones
         payload = json.dumps(
             {
                 "fields": [
                     {
-                        "id": 53,
+                        "id": field_ids.get("Title"),
                         "name": "Title",
                         "type": "text",
                         "value": entry_title,
                     },
                     {
-                        "id": 12,
+                        "id": field_ids.get("Description"),
                         "name": "Description",
                         "type": "text",
                         "value": f"{entry_description}",
                     },
-                    {"id": 13, "name": "MSRP", "type": "text", "value": entry_msrp},
                     {
-                        "id": 27,
+                        "id": field_ids.get("MSRP"),
+                        "name": "MSRP",
+                        "type": "text",
+                        "value": entry_msrp,
+                    },
+                    {
+                        "id": field_ids.get("Auto-Image"),
                         "name": "Auto-Image",
                         "type": "image",
                         "value": [entry_image],
                     },
                     {
-                        "id": 58,
+                        "id": field_ids.get("Scrape Status"),
                         "name": "Scrape Status",
                         "type": "choice",
                         "value": scrape_status,
@@ -651,13 +587,74 @@ def update_memento_entry(
                 ]
             }
         )
+        
+        # API URL
+        url = f"https://api.mementodatabase.com/v1/libraries/{memento_lib_id}/entries/{memento_entryid}?token={memento_token}"
         headers = {"Content-Type": "application/json"}
+        
+        # Send PATCH request
         response = requests.request("PATCH", url, headers=headers, data=payload)
         print(response.text)
         return True
     except Exception as e:
-        print("Error updating memento entry 1:", e)
+        print("Error updating memento entry:", e)
         return False
+
+
+# def update_memento_entry(
+#     memento_lib_id,
+#     memento_token,
+#     memento_entryid,
+#     entry_title="",
+#     entry_msrp="",
+#     entry_image="",
+#     entry_description="",
+#     scrape_status="Scrape Failed",
+# ):
+#     try:
+#         url = f"https://api.mementodatabase.com/v1/libraries/{memento_lib_id}/entries/{memento_entryid}?token={memento_token}"
+#         # Determine scrape status based on the entry_title
+#         # scrape_status = "Scrape Failed" if entry_title == "" else "Scrape Successful"
+#         if entry_title != "":
+#             scrape_status = "Scrape Successful"
+#         payload = json.dumps(
+#             {
+#                 "fields": [
+#                     {
+#                         "id": 53,
+#                         "name": "Title",
+#                         "type": "text",
+#                         "value": entry_title,
+#                     },
+#                     {
+#                         "id": 12,
+#                         "name": "Description",
+#                         "type": "text",
+#                         "value": f"{entry_description}",
+#                     },
+#                     {"id": 13, "name": "MSRP", "type": "text", "value": entry_msrp},
+#                     {
+#                         "id": 27,
+#                         "name": "Auto-Image",
+#                         "type": "image",
+#                         "value": [entry_image],
+#                     },
+#                     {
+#                         "id": 58,
+#                         "name": "Scrape Status",
+#                         "type": "choice",
+#                         "value": scrape_status,
+#                     },
+#                 ]
+#             }
+#         )
+#         headers = {"Content-Type": "application/json"}
+#         response = requests.request("PATCH", url, headers=headers, data=payload)
+#         print(response.text)
+#         return True
+#     except Exception as e:
+#         print("Error updating memento entry 1:", e)
+#         return False
 
 
 @app.route("/product-scraper", methods=["GET"])
@@ -708,7 +705,7 @@ def product_scraper():
     if asin and usamazon == False:
         results = product_scraperapi(asin)
     elif asin is None and usamazon == False:
-        results = get_product_info_selenium(product_code)
+        results = get_product_info_upc(product_code)
 
     if results != [] and usamazon == False:
         if "title" in results and "description" in results:
@@ -757,35 +754,12 @@ def product_scraper():
 @check_api
 def search_products():
     query = request.args.get("title")
-    # image = request.args.get("image")
-    # image_lib = request.args.get("lib")
+
     if not query:
         return jsonify({"status": "failed", "msg": "title is required parameter!"})
-    # if image is not None:
-    #     memento_lib_id = request.args.get("memento_lib_id")
-    #     memento_token = request.args.get("mementoToken")
-    #     memento_entryid = request.args.get("entryId")
-    #     image = image.strip("[]").split(", ")[0]
-    #     print("Image: ", image, type(image))
-    #     query = glens_results(image)
-    #     description = rewrite_product_description(query)
-    #     update_memento_entry(
-    #         memento_lib_id=memento_lib_id,
-    #         memento_token=memento_token,
-    #         memento_entryid=memento_entryid,
-    #         entry_title=query,
-    #         entry_description=description,
-    #     )
-    #     print("Title from glens: ", query)
-    #     sleep(5)
     memento_lib_id = request.args.get("memento_lib_id")
     memento_token = request.args.get("mementoToken")
     memento_entryid = request.args.get("entryId")
-    # scraperapi_api_key = os.getenv("SCRAPERAPI_API_KEY")
-    # amazon_search_url = f"https://api.scraperapi.com/structured/amazon/search?api_key={scraperapi_api_key}&country=ca&tld=ca&output=json&query={query}"
-    # gshopping_search_url = f"https://api.scraperapi.com/structured/google/shopping?api_key={scraperapi_api_key}&country=ca&query={query}"
-    # response = requests.request("GET", gshopping_search_url)
-    # response = json.loads(response.text)
 
     headers = {
         "X-API-KEY": os.getenv("SERPER_DEV_API_KEY"),
@@ -849,6 +823,13 @@ def insert_products_mementodb(
     memento_lib_id, memento_token, memento_entryid, data, scrape_status="Scrape Failed"
 ):
     try:
+        # Fetch the dynamic field IDs
+        field_ids = get_field_ids(memento_lib_id, memento_entryid, memento_token)
+        
+        # If no field IDs were found, return false
+        if not field_ids:
+            return False
+
         url = f"https://api.mementodatabase.com/v1/libraries/{memento_lib_id}/entries/{memento_entryid}?token={memento_token}"
         images = []
         msrps = []
@@ -856,7 +837,7 @@ def insert_products_mementodb(
         # Default value for fields
         fields = [
             {
-                "id": 58,
+                "id": field_ids.get("Scrape Status"),
                 "name": "Scrape Status",
                 "type": "choice",
                 "value": scrape_status,
@@ -869,8 +850,8 @@ def insert_products_mementodb(
                 cleaned_price = clean_price(result["price"])
                 msrps.append(cleaned_price)
 
-            images_list = create_entries_products_for_images(images)
-            msrps_list = create_entries_products_for_msrps(msrps)
+            images_list = create_entries_products_for_images(images, field_ids)
+            msrps_list = create_entries_products_for_msrps(msrps, field_ids)
             fields = images_list + msrps_list + fields
 
         payload = json.dumps({"fields": fields})
@@ -883,6 +864,4 @@ def insert_products_mementodb(
 
 
 if __name__ == "__main__":
-    # Start mitmdump in the background
-    # start_mitmdump_in_background()
     app.run(debug=True)

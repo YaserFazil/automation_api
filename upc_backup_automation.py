@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-def get_product_info_selenium(upc_code):
+def get_product_info_upc(upc_code):
     # URL construction
     url = f"https://www.barcodelookup.com/{upc_code}"
     apikey = os.getenv("ZENROWS_API_KEY")
@@ -60,10 +60,7 @@ def get_product_info_selenium(upc_code):
             "price": product_price,
         }
 
-        # scraperapi_api_key = os.getenv("SCRAPERAPI_API_KEY")
-        # gshopping_search_url = f"https://api.scraperapi.com/structured/google/shopping?api_key={scraperapi_api_key}&country=ca&query={product_title}"
-        # response = requests.get(gshopping_search_url)
-        # response_data = json.loads(response.text)
+
         headers = {
             "X-API-KEY": os.getenv("SERPER_DEV_API_KEY"),
             "Content-Type": "application/json",

@@ -1,96 +1,112 @@
-from mitmproxy import http
-
-def decode_content(content):
-    """Attempt to decode the content using various encodings."""
-    encodings = ['utf-8', 'ISO-8859-1', 'latin1']
-    for enc in encodings:
-        try:
-            return content.decode(enc), enc
-        except UnicodeDecodeError:
-            continue
-    return None, None  # If none of the encodings work, return None
-
-
-# from time import sleep
-# # This function will handle the request and replace the fnsku code
-# def request(flow: http.HTTPFlow) -> None:
-#     # Check if the request is to the desired endpoint
-#     if "match-visualsearch-ca.amazon.com" in flow.request.pretty_url:
-        
-#         # Log original request URL
-#         print(f"Original Request URL: {flow.request.pretty_url}")
-#         # Log the request headers and query parameters
-        # print(f"Request Headers: {flow.request.headers}")
-        # print(f"Request Query Params: {flow.request.query}")
-
-        # # sleep(1)
-        # # Attempt to decode the request body
-        # decoded_body, encoding = decode_content(flow.request.content)
-        # # sleep(1)
-        # if decoded_body:
-        #     print(f"Original Request Body (decoded with {encoding})")
-        #     # sleep(1)
-        #     # FNSKU code replacement logic
-        #     old_fnsku = "X003VRZZWD"
-        #     new_fnsku = "X0047SRB45"
-        #     # Check if the old FNSKU code is present in the request body
-        #     if old_fnsku in decoded_body:
-        #         modified_content = decoded_body.replace(old_fnsku, new_fnsku)
-        #         sleep(1)
-        #         # Handle re-encoding after replacement
-        #         encoded_content = modified_content.encode(encoding)  # Re-encode the body using the original encoding
-        #         # sleep(1)
-        #         flow.request.content = encoded_content  # Set the re-encoded body back to the request
-        #         sleep(1)
-        #         # flow.request.text = modified_content              
-        #         # sleep(1)
-        #         print(f"Modified Request Body (re-encoded with {encoding}): {modified_content}")
-        #         print("Request body modified")
-        # else:
-        #     # Handle binary data (if decoding failed)
-        #     print(f"Original Request Body: Could not decode, binary content detected")
-        #     # print(f"Request Body (hex): {flow.request.content.hex()}")
-
+import requests
 import json
-import os
+import time
+import math
+import hashlib
 
-def response(flow: http.HTTPFlow) -> None:
-    # Check if the request is to the desired endpoint
-    if "match-visualsearch-ca.amazon.com" in flow.request.url:
-        # Intercepting and logging responses
-        print(f"\n[RESPONSE] {flow.request.url}")
-        print(f"Status Code: {flow.response.status_code}")
-        print(f"Headers: {flow.response.headers}")
-        
-        # Try to decode the response body
-        decoded_body, encoding = decode_content(flow.response.content)
-        if decoded_body:
-            print(f"Response Body (decoded with {encoding}): {decoded_body}")
-            
-            # Attempt to parse the decoded body as JSON
-            try:
-                json_data = json.loads(decoded_body)  # Ensure it's in a JSON format
-                # Define the path where you want to save the JSON file
-                json_file_path = os.path.join('./', 'response.json')
-                
-                # Empty the file before writing (open in 'w' mode truncates the file)
-                with open(json_file_path, 'w', encoding='utf-8') as json_file:
-                    # Save the JSON data to the file
-                    json.dump(json_data, json_file, ensure_ascii=False, indent=4)
-                
-                print(f"JSON saved to {json_file_path}")
-            except json.JSONDecodeError:
-                print("Failed to decode response body as JSON")
-        else:
-            print(f"Response Body: Could not decode, binary content detected")
+SEARCH_BARCODE_HEADERS = {
+    "User-Agent": "okhttp/4.9.1",
+}
+
+
+
+
+def gen_authtoken(timestamp, country):
+    secret = "5b6874d3a20417591bd5464a25a37bc6" if country == "US" else "efb8826e4544bbab8992d757ec8b1116"
+    username = "amzn-mbl-cscan-us" if country == "US" else "amzn-mbl-cscan-ca"
+    application = "amzn-mbl-cscan-us" if country == "US" else "amzn-mbl-cscan-ca"
+    sha512_hash = hashlib.sha512()
+    data = secret + username + application + str(timestamp)
+    sha512_hash.update(data.encode())
+
+    return sha512_hash.hexdigest().upper()
+
+
+def search_barcode_logic(barcode, country="CA"):
+    search_barcode_endpoint = "https://match-visualsearch.amazon.com/vsearch/2.0" if country == "US" else "https://match-visualsearch-ca.amazon.com/vsearch/2.0"
+    timestamp = math.floor(time.time())
+    authtoken = gen_authtoken(timestamp, country)
+    print(authtoken)
+
+    body_params = {
+        "clientMessageVersion": "1.0",
+        "orientation": "90",
+        "uiMode": "barcode_scanner",
+        "application": "amzn-mbl-cscan-us" if country == "US" else "amzn-mbl-cscan-ca",
+        "lang": "en_US" if country == "US" else "en_CA",
+        "ts": timestamp,
+        "username": "amzn-mbl-cscan-us" if country == "US" else "amzn-mbl-cscan-ca",
+        "groupingId": "5045eb49-d8bb-4cc5-ad5e-6796e894b876",
+        "query_metadata": "",
+        "vsearch_params_json": "",
+        "authtoken": authtoken,
+    }
+
+    query_metdata = {
+        "amznSessionId": "135-7799391-5389824",
+        "clientVersion": "28.16.0.100",
+        "cardsVersion": "1.0",
+        "clientMessageVersion": "1.0",
+        "amznDirectedCustomerId": "",
+        "clientDeviceId": "06820589-f27d-40a0-ac10-b837d8b231ff",  # changes
+        "clientDevice": "Android - TECNO KF6i",  # changes
+        "deviceManufacturer": "TECNO MOBILE",  # changes
+        "clientDeviceVersion": "11",
+        "intentScore": "6.000000",
+        "clientId": "616076d7-be9c-4274-a566-ca80ddf70946",  # changes
+        "intentId": "0",
+        "initialPayloadSize": "0",
+        "version": "0.9",
+        "extra": "0",
+    }
+
+    vsearch_params_json = {
+        "occipital": {"params": {"barcode": barcode, "barcodeType": "CODE_128"}}
+    }
+
+    body_params["query_metadata"] = json.dumps(query_metdata)
+    body_params["vsearch_params_json"] = json.dumps(vsearch_params_json)
+
+    res = requests.post(
+        search_barcode_endpoint, headers=SEARCH_BARCODE_HEADERS, data=body_params
+    )
+
+    if res.ok:
+        response = res.json()
+        print(response)
+        if (
+            "occipital" in response
+            and "searchResult" in response["occipital"]
+            and response["occipital"]["searchResult"]
+            and type(response["occipital"]["searchResult"]) == list
+            and "properties" in response["occipital"]["searchResult"][0]
+            and "convertedBarcodes"
+            in response["occipital"]["searchResult"][0]["properties"]
+            and response["occipital"]["searchResult"][0]["properties"][
+                "convertedBarcodes"
+            ]
+        ):
+            converted_barcode = res.json()["occipital"]["searchResult"][0][
+                "properties"
+            ]["convertedBarcodes"][0]
+            print(f"Converted barcode : {converted_barcode}")
+
+            return converted_barcode
     else:
-        # Intercepting and logging responses
-        print(f"\n[RESPONSE] {flow.request.url}")
-        print(f"request body content: ", flow.request.content)
-        print(f"Headers: {flow.response.headers}")
-        print(f"Here is response body: ",  flow.response.content)
+        print(res.status_code)
+        print(res.text)
 
-if __name__ == "__main__":
-    from mitmproxy.tools.main import mitmdump
-    # Use mitmdump with the '-q' flag to suppress mitmproxy logs and only show your print statements
-    mitmdump(['-q', '-s', __file__])
+    return None
+
+
+def search_barcode(barcode):
+    country = "CA"
+    asin = search_barcode_logic(barcode, country)
+    if not asin:
+        country = "US"
+        asin = search_barcode_logic(barcode, country)
+    if asin:
+        return {"status": "success", "code": asin, "country": country}
+    else:
+        return {"status": "failed", "msg": "Not found ASIN"}
+search_barcode("X002OKP889")
