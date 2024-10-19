@@ -707,7 +707,7 @@ def product_scraper():
     elif asin is None and usamazon == False:
         results = get_product_info_upc(product_code)
 
-    if results != [] and usamazon == False:
+    if results and usamazon == False:
         if "title" in results and "description" in results:
             description = rewrite_product_description(
                 f"{results['title']} {results['description']}"
@@ -741,7 +741,7 @@ def product_scraper():
             insert_products_mementodb(
                 memento_lib_id, memento_token, memento_entryid, results, scrape_status
             )
-    elif results == [] and usamazon_status_code != 200:
+    elif not results and usamazon_status_code != 200:
         print("Hello it's failed usamazon automation request")
         update_memento_entry(memento_lib_id, memento_token, memento_entryid)
     elif results == [] or results == None or results == {}:
