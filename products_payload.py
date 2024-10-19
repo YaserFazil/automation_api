@@ -1,7 +1,7 @@
 def create_entries_products_for_images(image_links, field_ids):
     entries_products = []
     id_sequence = [28, 30, 32, 34, 36, 38, 40, 42, 44, 46]  # The id sequence as given
-    id_sequence = [int(field_ids.get("Online Image 1")), int(field_ids.get("Online Image 2")), int(field_ids.get("Online Image 3")), int(field_ids.get("Online Image 4")), int(field_ids.get("Online Image 5")), int(field_ids.get("Online Image 6")), int(field_ids.get("Online Image 7")), int(field_ids.get("Online Image 8")), int(field_ids.get("Online Image 9")), int(field_ids.get("Online Image 10"))]
+    id_sequence = [field_ids.get("Online Image 1"), field_ids.get("Online Image 2"), field_ids.get("Online Image 3"), field_ids.get("Online Image 4"), field_ids.get("Online Image 5"), field_ids.get("Online Image 6"), field_ids.get("Online Image 7"), field_ids.get("Online Image 8"), field_ids.get("Online Image 9"), field_ids.get("Online Image 10")]
     print("Here is id sequence: ", id_sequence)
     for index, link in enumerate(image_links[:10]):
         entry = {
