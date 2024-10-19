@@ -107,7 +107,7 @@ def get_product_info_upc(upc_code):
 
     except Exception as e:
         print("An error occurred: ", str(e))
-        return f"An error occurred: {str(e)}"
+        return None
 
 
 
