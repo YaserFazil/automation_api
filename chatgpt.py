@@ -37,6 +37,36 @@ def rewrite_product_description(description: str) -> str:
     return response
 
 
+def rewrite_product_title_to_query(title: str) -> str:
+    """
+    Rewrites the product description using GPT-4o.
+
+    Args:
+        description (str): The unfiltered product description.
+
+    Returns:
+        str: The rewritten product description in simple sentences.
+    """
+    # Set up your OpenAI API credentials here
+    api_key = os.getenv("OPENAI_API_KEY")
+
+    # Initialize the OpenAI API client
+    client = OpenAI(api_key=api_key)
+
+    # Define the prompt for GPT-4o
+    prompt = f"Rewrite the product title to a short google shopping search query. It should contain minimum of 3 words and maximum of 6 words. Product title: {title}"
+
+    response = client.completions.create(
+        model="gpt-3.5-turbo-instruct",
+        prompt=prompt,
+        temperature=1,
+        max_tokens=256,
+        top_p=1,
+    )
+    response = response.choices[0].text.strip()
+    return response
+
+
 def get_item_name_from_image(image):
 
     # OpenAI API Key

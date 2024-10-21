@@ -3,7 +3,7 @@ import requests
 import json
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
-
+from chatgpt import rewrite_product_title_to_query
 load_dotenv()
 
 def get_product_info_upc(upc_code):
@@ -59,7 +59,7 @@ def get_product_info_upc(upc_code):
             "description": product_description,
             "price": product_price,
         }
-
+        product_search_query = rewrite_product_title_to_query(product_title)
 
         headers = {
             "X-API-KEY": os.getenv("SERPER_DEV_API_KEY"),
@@ -69,7 +69,7 @@ def get_product_info_upc(upc_code):
         google_images_search_url = "https://google.serper.dev/images"
 
         imgs_payload = json.dumps(
-            {"q": product_title, "location": "Canada", "gl": "ca", "num": 20}
+            {"q": product_search_query, "location": "Canada", "gl": "ca", "num": 20}
         )
 
         imgs_response = requests.request(
@@ -81,7 +81,7 @@ def get_product_info_upc(upc_code):
         # Get products from google
         gshopping_search_url = "https://google.serper.dev/shopping"
 
-        payload = json.dumps({"q": product_title, "location": "Canada", "gl": "ca"})
+        payload = json.dumps({"q": product_search_query, "location": "Canada", "gl": "ca"})
 
         response = requests.request(
             "POST", gshopping_search_url, headers=headers, data=payload
