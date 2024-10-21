@@ -853,6 +853,7 @@ def product_scraper():
             )
             if results["price"] is not None:
                 scrape_status = "Scrape Successful, Alternate Data Available"
+                print("Here is shopping results: ", results)
             insert_products_mementodb(
                 memento_lib_id, memento_token, memento_entryid, results, field_ids, scrape_status
             )
