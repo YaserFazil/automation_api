@@ -818,7 +818,12 @@ def product_scraper():
         results = product_scraperapi(asin)
     elif asin is None and usamazon == False:
         results = get_product_info_upc(product_code)
-
+    # Fetch the dynamic field IDs
+    field_ids = get_field_ids(memento_lib_id, memento_entryid, memento_token)
+    
+    # If no field IDs were found, return false
+    if not field_ids:
+        return False
     if results and usamazon == False:
         if "title" in results and "description" in results:
             description = rewrite_product_description(
@@ -850,12 +855,6 @@ def product_scraper():
             )
             if results["price"] is not None:
                 scrape_status = "Scrape Successful, Alternate Data Available"
-                        # Fetch the dynamic field IDs
-            field_ids = get_field_ids(memento_lib_id, memento_entryid, memento_token)
-            
-            # If no field IDs were found, return false
-            if not field_ids:
-                return False
             insert_products_mementodb(
                 memento_lib_id, memento_token, memento_entryid, results, field_ids, scrape_status
             )
