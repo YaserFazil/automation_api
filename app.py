@@ -850,8 +850,14 @@ def product_scraper():
             )
             if results["price"] is not None:
                 scrape_status = "Scrape Successful, Alternate Data Available"
+                        # Fetch the dynamic field IDs
+            field_ids = get_field_ids(memento_lib_id, memento_entryid, memento_token)
+            
+            # If no field IDs were found, return false
+            if not field_ids:
+                return False
             insert_products_mementodb(
-                memento_lib_id, memento_token, memento_entryid, results, scrape_status
+                memento_lib_id, memento_token, memento_entryid, results, field_ids, scrape_status
             )
     elif not results and usamazon_status_code != 200:
         print("Hello it's failed usamazon automation request")
@@ -914,8 +920,14 @@ def search_products():
             )  # Add the combined dict to the main array
         search_data["shopping_results"] = main_results
         scrape_status = "Manual Entry Data Scraped"
+    # Fetch the dynamic field IDs
+    field_ids = get_field_ids(memento_lib_id, memento_entryid, memento_token)
+    
+    # If no field IDs were found, return false
+    if not field_ids:
+        return False
     insert_products_mementodb(
-        memento_lib_id, memento_token, memento_entryid, search_data, scrape_status
+        memento_lib_id, memento_token, memento_entryid, search_data, field_ids, scrape_status
     )
     return jsonify({"status": "success"}), 200
 
@@ -932,15 +944,10 @@ def clean_price(price_str):
     return "None"  # Return None if no price is found
 
 def insert_products_mementodb(
-    memento_lib_id, memento_token, memento_entryid, data, scrape_status="Scrape Failed"
+    memento_lib_id, memento_token, memento_entryid, data, field_ids, scrape_status="Scrape Failed"
 ):
     try:
-        # Fetch the dynamic field IDs
-        field_ids = get_field_ids(memento_lib_id, memento_entryid, memento_token)
-        
-        # If no field IDs were found, return false
-        if not field_ids:
-            return False
+
 
         url = f"https://api.mementodatabase.com/v1/libraries/{memento_lib_id}/entries/{memento_entryid}?token={memento_token}"
         images = []
