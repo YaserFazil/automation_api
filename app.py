@@ -531,6 +531,7 @@ def update_memento_entry(
     memento_lib_id,
     memento_token,
     memento_entryid,
+    field_ids,
     entry_title="",
     entry_msrp="",
     entry_image="",
@@ -539,12 +540,7 @@ def update_memento_entry(
 ):
     print("start entry image: ", entry_image)
     try:
-        # Fetch the dynamic field IDs
-        field_ids = get_field_ids(memento_lib_id, memento_entryid, memento_token)
-        
-        # If no field IDs were found, return false
-        if not field_ids:
-            return False
+
 
         # Determine scrape status based on the entry_title
         if entry_title != "":
@@ -829,10 +825,11 @@ def product_scraper():
             description = rewrite_product_description(
                 f"{results['title']} {results['description']}"
             )
-            updated_entry = update_memento_entry(
+            update_memento_entry(
                 memento_lib_id,
                 memento_token,
                 memento_entryid,
+                field_ids,
                 results["title"],
                 results["price"],
                 results["image"],
@@ -840,10 +837,11 @@ def product_scraper():
             )
         elif "title" in results and "description" not in results:
             description = rewrite_product_description(f"{results['title']}")
-            updated_entry = update_memento_entry(
+            update_memento_entry(
                 memento_lib_id,
                 memento_token,
                 memento_entryid,
+                field_ids,
                 results["title"],
                 results["price"],
                 results["image"],
@@ -860,7 +858,7 @@ def product_scraper():
             )
     elif not results and usamazon_status_code != 200:
         print("Hello it's failed usamazon automation request")
-        update_memento_entry(memento_lib_id, memento_token, memento_entryid)
+        update_memento_entry(memento_lib_id, memento_token, memento_entryid, field_ids)
     return (
         jsonify({"message": "You have access to this endpoint", "items": results}),
         200,
