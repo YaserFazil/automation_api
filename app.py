@@ -791,6 +791,7 @@ def product_scraper():
         if results[0]["status"] == "success":
             asin = results[0]["asin"]
         else:
+            results = []
             usamazon_status_code = 0
             print("Us AMZ Status Code: ", usamazon_status_code)
             usamazon = True
