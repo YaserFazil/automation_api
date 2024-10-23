@@ -13,6 +13,7 @@
         "project_name": "automation-api",
         "runtime": "python3.11",
         "s3_bucket": "zappa-flask-soniclister",
-        "timeout_seconds": 900
+        "timeout_seconds": 900,
+        "slim_handler": true
     }
 }

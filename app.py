@@ -791,9 +791,7 @@ def product_scraper():
         if results[0]["status"] == "success":
             asin = results[0]["asin"]
         else:
-            usamazon_status_code = fnsku_to_asin_logic_us_amz(
-                [product_code], memento_entryid, memento_lib_id, memento_token
-            )
+            usamazon_status_code = 0
             print("Us AMZ Status Code: ", usamazon_status_code)
             usamazon = True
 
