@@ -361,6 +361,124 @@ def convert_fnsku_to_asin():
     results = fnsku_to_asin_logic(fnskus)
     return jsonify(results)
 
+@app.route("/code-converter", methods=["GET"])
+def code_converter():
+    product_code = request.args.get("product_code")
+    if not product_code:
+        return jsonify({"status": "failed", "msg": "Product Code is required!"})
+    results = []
+    usamazon = False
+    usamazon_status_code = 0
+    asin = None
+    # Check if the code is ASIN
+    if product_code.startswith("B0") and len(product_code) == 10:
+        asin = product_code
+
+    # Check if the code is FNSKU
+    elif product_code.startswith("X0") and len(product_code) == 10:
+        results = fnsku_to_asin_logic([product_code])
+        print("Here is result you wanted: ", results)
+        if results[0]["status"] == "success":
+            asin = results[0]["asin"]
+        else:
+            results = []
+            usamazon_status_code = 0
+            print("Us AMZ Status Code: ", usamazon_status_code)
+            usamazon = True
+
+    # Check if the code is UPC (12 digits)
+    elif product_code.isdigit():
+        results = upc_to_asin_logic(product_code)
+        if (
+            product_code in results
+            and results[product_code]
+            and results[product_code][0] != "No ASIN found"
+            and len(results[product_code]) == 1
+        ):
+            asin = results[product_code][0]
+        else:
+            asin = None
+
+    if asin and usamazon == False:
+        results = product_scraperapi(asin)
+    elif asin is None and usamazon == False:
+        results = get_product_info_upc(product_code)
+
+    
+
+    if results and usamazon == False:
+        if "title" in results and "description" in results:
+            description = rewrite_product_description(
+                f"{results['title']} {results['description']}"
+            )
+            results["description"] = description
+        elif "title" in results and "description" not in results:
+            description = rewrite_product_description(f"{results['title']}")
+            results["description"] = description
+        if "shopping_results" in results:
+            scrape_status = (
+                "Scrape Successful, MSRP Pending Selection, Alternate Data Available"
+            )
+            if results["price"] is not None:
+                scrape_status = "Scrape Successful, Alternate Data Available"
+                print("Here is shopping results: ", results)
+            results["scrape_status"] = scrape_status
+    elif not results and usamazon_status_code != 200:
+        print("Hello it's failed usamazon automation request")
+    return (
+        jsonify({"message": "You have access to this endpoint", "items": results}),
+        200,
+    )
+
+@app.route("/get-products", methods=["GET"])
+def get_products():
+    query = request.args.get("title")
+
+    if not query:
+        return jsonify({"status": "failed", "msg": "title is required parameter!"})
+
+    headers = {
+        "X-API-KEY": os.getenv("SERPER_DEV_API_KEY"),
+        "Content-Type": "application/json",
+    }
+    # Get images for products from google
+    google_images_search_url = "https://google.serper.dev/images"
+
+    imgs_payload = json.dumps({"q": query, "location": "Canada", "gl": "ca", "num": 20})
+
+    imgs_response = requests.request(
+        "POST", google_images_search_url, headers=headers, data=imgs_payload
+    )
+
+    first_imgs_response = json.loads(imgs_response.text)
+
+    # Get products from google
+    gshopping_search_url = "https://google.serper.dev/shopping"
+
+    payload = json.dumps({"q": query, "location": "Canada", "gl": "ca"})
+
+    response = requests.request(
+        "POST", gshopping_search_url, headers=headers, data=payload
+    )
+    first_response = json.loads(response.text)
+    scrape_status = "Scrape Failed"
+    search_data = {}
+    main_results = []
+    if len(first_response["shopping"]) > 0:
+        # Combine corresponding dictionaries from first_imgs_response and first_response, prioritizing imageUrl from first_imgs_response
+        for dict1, dict2 in zip(
+            first_imgs_response["images"], first_response["shopping"]
+        ):
+            combined_dict = {
+                **dict2,
+                **dict1,
+            }  # Combine dictionaries, with dict1 overwriting dict2 where keys overlap
+            main_results.append(
+                combined_dict
+            )  # Add the combined dict to the main array
+        search_data["shopping_results"] = main_results
+        scrape_status = "Manual Entry Data Scraped"
+    return jsonify({"status": "success", "search_data": search_data, "scrape_status": scrape_status}), 200
 
 def image_gsearch(query, num):
     try:

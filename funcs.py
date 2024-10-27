@@ -130,9 +130,9 @@ def search_barcode_logic(barcode, country="CA"):
 def search_barcode(barcode):
     country = "CA"
     asin = search_barcode_logic(barcode, country)
-    if not asin:
-        country = "US"
-        asin = search_barcode_logic(barcode, country)
+    # if not asin:
+    #     country = "US"
+    #     asin = search_barcode_logic(barcode, country)
     if asin:
         return {"status": "success", "code": asin, "country": country}
     else:
