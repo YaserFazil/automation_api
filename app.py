@@ -15,6 +15,7 @@ import json
 import datetime
 from chatgpt import *
 from upc_backup_automation import *
+from manage_dynamodb import add_product_code, scan_for_product_code
 load_dotenv()
 
 app = Flask(__name__)
@@ -904,28 +905,34 @@ def product_scraper():
 
     # Check if the code is FNSKU
     elif product_code.startswith("X0") and len(product_code) == 10:
-        results = fnsku_to_asin_logic([product_code])
-        print("Here is result you wanted: ", results)
-        if results[0]["status"] == "success":
-            asin = results[0]["asin"]
-        else:
-            results = []
-            usamazon_status_code = 0
-            print("Us AMZ Status Code: ", usamazon_status_code)
-            usamazon = True
+        asin = scan_for_product_code('fnsku', product_code)
+        if asin is None:
+            results = fnsku_to_asin_logic([product_code])
+            print("Here is result you wanted: ", results)
+            if results[0]["status"] == "success":
+                asin = results[0]["asin"]
+                add_product_code(asin, fnsku=product_code)
+            else:
+                results = []
+                usamazon_status_code = 0
+                print("Us AMZ Status Code: ", usamazon_status_code)
+                usamazon = True
 
     # Check if the code is UPC (12 digits)
     elif product_code.isdigit():
-        results = upc_to_asin_logic(product_code)
-        if (
-            product_code in results
-            and results[product_code]
-            and results[product_code][0] != "No ASIN found"
-            and len(results[product_code]) == 1
-        ):
-            asin = results[product_code][0]
-        else:
-            asin = None
+        asin = scan_for_product_code('upc', product_code)
+        if asin is None:
+            results = upc_to_asin_logic(product_code)
+            if (
+                product_code in results
+                and results[product_code]
+                and results[product_code][0] != "No ASIN found"
+                and len(results[product_code]) == 1
+            ):
+                asin = results[product_code][0]
+                add_product_code(asin, product_code)
+            else:
+                asin = None
 
     if asin and usamazon == False:
         results = product_scraperapi(asin)
