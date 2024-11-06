@@ -655,170 +655,86 @@ def update_memento_entry(
     entry_msrp="",
     entry_image="",
     entry_description="",
+    entry_asin="",
+    source_link="",
     scrape_status="Scrape Failed",
 ):
     print("start entry image: ", entry_image)
     try:
-
-
         # Determine scrape status based on the entry_title
         if entry_title != "":
             scrape_status = "Scrape Successful"
-        
-        # Dynamically assign the field IDs using the fetched ones
-        payload = json.dumps(
+
+        # Initialize the fields list and add the ASIN field conditionally
+        fields = []
+
+        if entry_asin:
+            fields.append({
+                "id": field_ids.get("ASIN"),
+                "name": "ASIN",
+                "type": "text",
+                "value": entry_asin
+            })
+
+        # Append other fields to the list unconditionally
+        fields.extend([
             {
-                "fields": [
-                    {
-                        "id": field_ids.get("Title"),
-                        "name": "Title",
-                        "type": "text",
-                        "value": entry_title,
-                    },
-                    {
-                        "id": field_ids.get("Description"),
-                        "name": "Description",
-                        "type": "text",
-                        "value": f"{entry_description}",
-                    },
-                    {
-                        "id": field_ids.get("MSRP"),
-                        "name": "MSRP",
-                        "type": "text",
-                        "value": entry_msrp,
-                    },
-                    {
-                        "id": field_ids.get("Auto-Image"),
-                        "name": "Auto-Image",
-                        "type": "image",
-                        "value": [entry_image],
-                    },
-                    {
-                        "id": field_ids.get("Online Image 1"),
-                        "name": "Online Image 1",
-                        "type": "image",
-                        "value": "",
-                    },
-                    {
-                        "id": field_ids.get("MSRP 1"),
-                        "name": "MSRP 1",
-                        "type": "text",
-                        "value": "",
-                    },                    {
-                        "id": field_ids.get("Online Image 2"),
-                        "name": "Online Image 2",
-                        "type": "image",
-                        "value": "",
-                    },
-                    {
-                        "id": field_ids.get("MSRP 2"),
-                        "name": "MSRP 2",
-                        "type": "text",
-                        "value": "",
-                    },
-                    {
-                        "id": field_ids.get("Online Image 3"),
-                        "name": "Online Image 3",
-                        "type": "image",
-                        "value": "",
-                    },
-                    {
-                        "id": field_ids.get("MSRP 3"),
-                        "name": "MSRP 3",
-                        "type": "text",
-                        "value": "",
-                    },                    {
-                        "id": field_ids.get("Online Image 4"),
-                        "name": "Online Image 4",
-                        "type": "image",
-                        "value": "",
-                    },
-                    {
-                        "id": field_ids.get("MSRP 4"),
-                        "name": "MSRP 4",
-                        "type": "text",
-                        "value": "",
-                    },                    {
-                        "id": field_ids.get("Online Image 5"),
-                        "name": "Online Image 5",
-                        "type": "image",
-                        "value": "",
-                    },
-                    {
-                        "id": field_ids.get("MSRP 5"),
-                        "name": "MSRP 5",
-                        "type": "text",
-                        "value": "",
-                    },                    {
-                        "id": field_ids.get("Online Image 6"),
-                        "name": "Online Image 6",
-                        "type": "image",
-                        "value": "",
-                    },
-                    {
-                        "id": field_ids.get("MSRP 6"),
-                        "name": "MSRP 6",
-                        "type": "text",
-                        "value": "",
-                    },                    {
-                        "id": field_ids.get("Online Image 7"),
-                        "name": "Online Image 7",
-                        "type": "image",
-                        "value": "",
-                    },
-                    {
-                        "id": field_ids.get("MSRP 7"),
-                        "name": "MSRP 7",
-                        "type": "text",
-                        "value": "",
-                    },                    {
-                        "id": field_ids.get("Online Image 8"),
-                        "name": "Online Image 8",
-                        "type": "image",
-                        "value": "",
-                    },
-                    {
-                        "id": field_ids.get("MSRP 8"),
-                        "name": "MSRP 8",
-                        "type": "text",
-                        "value": "",
-                    },                    {
-                        "id": field_ids.get("Online Image 9"),
-                        "name": "Online Image 9",
-                        "type": "image",
-                        "value": "",
-                    },
-                    {
-                        "id": field_ids.get("MSRP 9"),
-                        "name": "MSRP 9",
-                        "type": "text",
-                        "value": "",
-                    },                    {
-                        "id": field_ids.get("Online Image 10"),
-                        "name": "Online Image 10",
-                        "type": "image",
-                        "value": "",
-                    },
-                    {
-                        "id": field_ids.get("MSRP 10"),
-                        "name": "MSRP 10",
-                        "type": "text",
-                        "value": "",
-                    },
-                    {
-                        "id": field_ids.get("Scrape Status"),
-                        "name": "Scrape Status",
-                        "type": "choice",
-                        "value": scrape_status,
-                    },
-                ]
-            }
-        )
-        
+                "id": field_ids.get("Source Link"),
+                "name": "Source Link",
+                "type": "text",
+                "value": source_link
+            },
+            {
+                "id": field_ids.get("Title"),
+                "name": "Title",
+                "type": "text",
+                "value": entry_title,
+            },
+            {
+                "id": field_ids.get("Description"),
+                "name": "Description",
+                "type": "text",
+                "value": entry_description,
+            },
+            {
+                "id": field_ids.get("MSRP"),
+                "name": "MSRP",
+                "type": "text",
+                "value": entry_msrp,
+            },
+            {
+                "id": field_ids.get("Auto-Image"),
+                "name": "Auto-Image",
+                "type": "image",
+                "value": [entry_image],
+            },
+            *[{
+                "id": field_ids.get(f"Online Image {i}"),
+                "name": f"Online Image {i}",
+                "type": "image",
+                "value": "",
+            } for i in range(1, 11)],
+            *[{
+                "id": field_ids.get(f"MSRP {i}"),
+                "name": f"MSRP {i}",
+                "type": "text",
+                "value": "",
+            } for i in range(1, 11)],
+            {
+                "id": field_ids.get("Scrape Status"),
+                "name": "Scrape Status",
+                "type": "choice",
+                "value": scrape_status,
+            },
+        ])
+
+        # Create the payload with the dynamically constructed fields list
+        payload = json.dumps({"fields": fields})
+
         # API URL
         url = f"https://api.mementodatabase.com/v1/libraries/{memento_lib_id}/entries/{memento_entryid}?token={memento_token}"
         headers = {"Content-Type": "application/json"}
-        
+
         # Send PATCH request
         response = requests.request("PATCH", url, headers=headers, data=payload)
         print(response.text)
@@ -891,6 +807,7 @@ def product_scraper():
     entry_id = request.args.getlist("entryId")
     memento_lib_id = request.args.get("memento_lib_id")
     memento_token = request.args.get("mementoToken")
+    other_codes_required = request.args.get("other_codes")
     memento_entryid = entry_id[0]
     print("Here is the entry id: ", entry_id)
     if not product_code:
@@ -938,6 +855,9 @@ def product_scraper():
         results = product_scraperapi(asin)
     elif asin is None and usamazon == False:
         results = get_product_info_upc(product_code)
+        if results:
+            results["source_link"] = f"https://www.barcodelookup.com/{product_code}"
+
     # Fetch the dynamic field IDs
     field_ids = get_field_ids(memento_lib_id, memento_entryid, memento_token)
     
@@ -945,6 +865,12 @@ def product_scraper():
     if not field_ids:
         return False
     if results and usamazon == False:
+        if asin:
+            results["source_link"] = f"https://amazon.ca/dp/{asin}"
+        if other_codes_required:
+            results["asin"] = asin
+        else:
+            results["asin"] = ""
         if "title" in results and "description" in results:
             description = rewrite_product_description(
                 f"{results['title']} {results['description']}"
@@ -958,6 +884,8 @@ def product_scraper():
                 results["price"],
                 results["image"],
                 description,
+                results["asin"],
+                results["source_link"]
             )
         elif "title" in results and "description" not in results:
             description = rewrite_product_description(f"{results['title']}")
@@ -970,6 +898,8 @@ def product_scraper():
                 results["price"],
                 results["image"],
                 description,
+                results["asin"],
+                results["source_link"]
             )
         if "shopping_results" in results:
             scrape_status = (
